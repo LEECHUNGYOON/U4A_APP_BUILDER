@@ -333,8 +333,6 @@ oAPP.setWWWCompressforVersion = function (sVer) {
         aWWWFolders = FS.readdirSync(sJsFolderPath),
         iWWWFolderLen = aWWWFolders.length;
 
-    debugger;
-
     for (var i = 0; i < iWWWFolderLen; i++) {
 
         var sFilePath = sJsFolderPath + "\\" + aWWWFolders[i],
