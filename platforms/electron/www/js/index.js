@@ -136,17 +136,6 @@
 
     }; // end of oAPP.onStart
 
-    // WWW 파일을 compress 한다.
-    oAPP.setWWWCompress = function () {
-
-
-
-
-
-
-
-    }; // end of oAPP.setWWWCompress
-
     // update
     oAPP.onUpdateWWW = function (req, res) {
 
@@ -221,8 +210,6 @@
     }; // end of oAPP.onUpdateWWW
 
     oAPP._onUpdateWWW = function (req, res, oFormData) {
-
-        debugger;
 
         var oFields = oFormData["FIELDS"],
             oFiles = oFormData["FILES"];
@@ -483,20 +470,22 @@
                 oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
 
                     // temp -> u4a_www 폴더에 복사한다.
-                    var sTargetPath = U4A_WWW + "\\" + sNewVer;
+                    var sTargetPath = U4A_WWW_REL + "\\" + sNewVer;
                     FS.copy(sExtractFolderPath, sTargetPath).then(function () {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
                         FS.removeSync(sExtractFolderPath);
 
-                        var aFolders = FS.readdirSync(U4A_WWW);
+                        debugger;
 
-                        var oRetCod = {
-                            RETCD: "S",
-                            MSGTXT: "신규버전 생성 완료!",
-                            DATA: aFolders
-                        };
+                        // var aFolders = FS.readdirSync(U4A_WWW_REL);
+
+                        // 신규 버전에 따른 www 폴더 compress
+                        var oRetCod = UTIL.setWWWCompressforVersion(sNewVer);
+                        if(oRetCod.RETCD == "E"){
+                            FS.removeSync(sTargetPath);
+                        }
 
                         res.end(JSON.stringify(oRetCod));
 
@@ -519,7 +508,7 @@
 
     oAPP.getLastVersion = function () {
 
-        var aFolders = FS.readdirSync(U4A_WWW),
+        var aFolders = FS.readdirSync(U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
 
         if (iFolderLengh == 0) {
@@ -538,7 +527,7 @@
             MSG: ""
         };
 
-        var aFolders = FS.readdirSync(U4A_WWW),
+        var aFolders = FS.readdirSync(U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
 
         if (iFolderLengh == 0) {
@@ -653,7 +642,7 @@
 
         var oFields = oFormData.FIELDS,
             sVer = oFields.VER,
-            sFolderPath = U4A_WWW + "\\" + sVer;
+            sFolderPath = U4A_WWW_DBG + "\\" + sVer;
 
         // 해당 버전 폴더가 없으면 오류
         if (!FS.existsSync(sFolderPath)) {
