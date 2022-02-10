@@ -1,0 +1,444 @@
+
+
+/* [START] NFC 로딩바 */
+#nfc-modal-container {
+    position: fixed;
+    display: table;
+    height: 100%;
+    width: 100%;
+    top: 0;
+    left: 0;
+    transform: scale(0);
+    z-index: 1;
+  }
+  #nfc-modal-container {
+    transform: scale(1);
+  }
+  #nfc-modal-container .modal-background {
+    background: rgba(0, 0, 0, 0);
+    animation: fadeIn 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  #nfc-modal-container .modal-background .modal {
+    opacity: 0;
+    animation: scaleUp 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  #nfc-modal-container .modal-close {
+    visibility: hidden;
+    animation: quickScaleDown 0s 0.5s linear forwards;
+  }
+  
+  #nfc-modal-container .modal-close .modal-background {
+    animation: fadeOut 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  #nfc-modal-container .modal-close .modal-background .modal {
+    animation: scaleDown 0.5s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+  }
+  #nfc-modal-container .modal-background {
+    display: table-cell;
+    background: rgba(0, 0, 0, 0.8);
+    text-align: center;
+    vertical-align: middle;
+  }
+  #nfc-modal-container .modal-background .modal {
+    background: white;
+    padding-top : 20px;
+    padding-left: 30px;
+    padding-right: 30px;
+    display: inline-block;
+    border-radius: 15px;
+    font-weight: 300;
+    position: relative;
+  }
+  #nfc-modal-container .modal-background .modal h2 {
+      font-size: 25px;
+      line-height: 25px;
+      margin-block: auto;
+  }
+  
+  .modal-footer {
+      padding: 15px;
+  }
+  .modal-cancelbtn {
+      width: 100px;
+      height: 40px;
+      display: inline-block;
+      padding: 6px 12px;
+      margin-bottom: 0;
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 1.42857143;
+      text-align: center;
+      white-space: nowrap;
+      vertical-align: middle;
+      -ms-touch-action: manipulation;
+      touch-action: manipulation;
+      cursor: pointer;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
+      background-image: none;
+      border: 1px solid transparent;
+      border-radius: 4px;
+  }
+  .modal-btn-default {
+      color: #fff;
+      background-color: #337ab7;
+      border-color: #2e6da4;
+  }
+  .modal-cancelbtn:hover {
+      color: #fff;
+      background-color: #286090;
+      border-color: #204d74;
+  }
+  .modal-line {
+      margin-right: 5px;
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 15px;
+      background-color: #4b9cdb;
+  }
+  .modal-loading {
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+  }
+  .modal-loading .modal-line:nth-last-child(3){
+      animation: loadingC 0.6s 0.3s linear infinite;
+  }
+  .modal-loading .modal-line:nth-last-child(2){
+      animation: loadingC 0.6s 0.2s linear infinite;
+  }
+  .modal-loading .modal-line:nth-last-child(1){
+      animation: loadingC 0.6s 0.1s linear infinite;
+  }
+  
+  @keyframes fadeIn {
+    0% {
+      background: rgba(0, 0, 0, 0);
+    }
+    100% {
+      background: rgba(0, 0, 0, 0.7);
+    }
+  }
+  @keyframes fadeOut {
+    0% {
+      background: rgba(0, 0, 0, 0.7);
+    }
+    100% {
+      background: rgba(0, 0, 0, 0);
+    }
+  }
+  
+  @keyframes scaleUp {
+    0% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+  
+  @keyframes scaleDown {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(0.8);
+      opacity: 0;
+    }
+  }
+  @keyframes quickScaleDown {
+    0% {
+      transform: scale(1);
+    }
+    99.9% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(0);
+    }
+  }
+  
+  @keyframes loadingC {
+    50% {
+      transform: translate(0, 15px);
+    }
+  
+    100% {
+      transform: translate(0, 0);
+    }
+  }
+
+/* [END] NFC 로딩바 */
+
+
+/* [START] NETWORK 연결 끊길때 나타나는 로딩 바*/
+
+.u4a_loaders {
+  font-family: sans-serif;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  /* font-size: 2.5rem; */
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: rgba(2, 8, 16, 0.55);
+  position: absolute;
+  top: 0;
+  width: 100%;
+  /* background: white; */
+  background: rgb(255 255 255 / 85%);
+  box-shadow: rgba(0, 0, 0, 0.11) 0px 15px 30px 0px, rgba(0, 0, 0, 0.08) 0px 5px 15px 0px;
+  z-index: 99999;
+}
+
+.u4a_loader {
+	display: inline-block;
+	position: relative;
+	width: 60px;
+	height: 20px;
+	text-align: center;
+	vertical-align: middle;
+}
+.u4a_loadersInactive {
+  display: none;
+}
+.u4a_loader-bars:before,
+.u4a_loader-bars:after,
+.u4a_loader-bars span {
+	content: "";
+	display: block;
+	position: absolute;
+	left: 0;
+	top: 0;
+	width: 10px;
+	height: 30px;
+	background-color: rgba(2, 8, 16, 0.55);
+	-webkit-animation: u4a_grow 1.5s linear infinite;
+	animation: u4a_grow 1.5s linear infinite;
+}
+
+.u4a_loader-bars:after {
+	left: 15px;
+	-webkit-animation: u4a_grow 1.5s linear -0.5s infinite;
+	animation: u4a_grow 1.5s linear -0.5s infinite;
+}
+
+.u4a_loader-bars span {
+	left: 30px;
+	-webkit-animation: u4a_grow 1.5s linear -1s infinite;
+	animation: u4a_grow 1.5s linear -1s infinite;
+}
+
+@-webkit-keyframes u4a_grow {
+	0% {
+		-webkit-transform: scaleY(0);
+		transform: scaleY(0);
+		opacity: 0;
+	}
+	50% {
+		-webkit-transform: scaleY(1);
+		transform: scaleY(1);
+		opacity: 1;
+	}
+	100% {
+		-webkit-transform: scaleY(0);
+		transform: scaleY(0);
+		opacity: 0;
+	}
+}
+
+@keyframes u4a_grow {
+	0% {
+		-webkit-transform: scaleY(0);
+		transform: scaleY(0);
+		opacity: 0;
+	}
+	50% {
+		-webkit-transform: scaleY(1);
+		transform: scaleY(1);
+		opacity: 1;
+	}
+	100% {
+		-webkit-transform: scaleY(0);
+		transform: scaleY(0);
+		opacity: 0;
+	}
+}
+
+.u4a_loaders .wifi {
+  /* width: 64px;
+  height: 64px; */
+  width: 40px;
+  fill: #eee;
+  margin-right: 10px;
+}
+
+@keyframes u4a_wifi_wave {
+  /* 50% { fill: #000; } */
+  50% { fill: rgba(2, 8, 16, 0.55) }
+}
+
+.u4a_loaders .wifi path {
+  animation: u4a_wifi_wave 1s infinite var(--delay);
+}
+.u4a_loaders .wifi path:nth-child(1) { --delay: -0.4s; }
+.u4a_loaders .wifi path:nth-child(2) { --delay: -0.3s; }
+.u4a_loaders .wifi path:nth-child(3) { --delay: -0.2s; }
+.u4a_loaders .wifi path:nth-child(4) { --delay: -0.1s; }
+
+/* [END] NETWORK 연결 끊길때 나타나는 로딩 바*/
+
+
+/* [START] 기본 Busy Indicator Css */
+
+#u4aWsBusyIndicator {
+  right: 0;
+}
+.u4aWsBusyIndicator {
+  z-index: 2000000;
+}
+.sapUiUserSelectable {
+  -webkit-touch-callout: text;
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+.sapUiBusy {
+  display: block;
+  width: 48px;
+  height: 48px;
+  outline: none;
+  cursor: wait;
+  top: 0 !important;
+}
+#u4aWsBusyIndicator>.sapUiLocalBusyIndicatorFade {
+  cursor: wait;
+}
+.sapUiLocalBusyIndicatorSizeBig {
+  font-size: 2rem;
+  background-color: transparent;
+}
+.sapUiLocalBusyIndicatorFade {
+  opacity: 1;
+}
+.sapUiLocalBusyIndicator {
+  opacity: 0;
+  transition: opacity .3s ease-in;
+  outline: none;
+}
+.sapUiLocalBusyIndicator {
+  background-color: rgba(247,247,247,0.72);
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+}
+.sapUiLocalBusyIndicatorAnimation {
+  position: absolute;
+  width: 3em;
+  top: 50%;
+  left: 50%;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div:nth-child(1) {
+  animation-delay: -0.32s;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div:nth-child(2) {
+  animation-delay: -0.16s;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div {
+  animation: sapUiBusyAnimationStandard 1.8s infinite ease-in-out;
+}
+.sapUiLocalBusyIndicatorAnimation>div, .sapUiLocalBusyIndicatorAnimation>div::before, .sapUiLocalBusyIndicatorAnimation>div::after {
+  animation-fill-mode: both;
+}
+.sapUiLocalBusyIndicatorAnimation>div {
+  width: 1em;
+  height: 1em;
+  border-radius: 100%;
+  display: block;
+  float: left;
+  margin: 0px;
+  position: relative;
+  top: -0.5em;
+  left: -1.5em;
+  text-indent: 1px;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div {
+  animation: sapUiBusyAnimationStandard 1.8s infinite ease-in-out;
+}
+.sapUiLocalBusyIndicatorAnimation>div::before {
+  background: #0854a0;
+  animation-duration: 0ms;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div::before {
+  animation: sapUiBusyAnimationStandardBackground 1.8s infinite ease-in-out;
+}
+.sapUiLocalBusyIndicatorAnimation>div::before {
+  background: #0a6ed1;
+}
+.sapUiLocalBusyIndicatorAnimation>div::before, .sapUiLocalBusyIndicatorAnimation>div::after {
+  content: "";
+  opacity: 1;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: 100%;
+}
+.sapUiLocalBusyIndicatorAnimation>div::after {
+  box-shadow: inset 0 0 0 0 #0854a0;
+}
+.sapUiLocalBusyIndicatorAnimStandard>div::after {
+  animation: sapUiBusyAnimationStandardShadow 1.8s infinite ease-in-out;
+}
+.sapUiLocalBusyIndicatorAnimation>div::after {
+  box-shadow: inset 0 0 2px 1px rgb(10 110 209 / 80%);
+}
+.sapUiLocalBusyIndicatorAnimation>div {
+  width: 1em;
+  height: 1em;
+  border-radius: 100%;
+  display: block;
+  float: left;
+  margin: 0px;
+  position: relative;
+  top: -0.5em;
+  left: -1.5em;
+  text-indent: 1px;
+}
+.sapUiLocalBusyIndicatorSizeBig {
+  font-size: 2rem;
+  background-color: transparent;
+}
+.sapUiLocalBusyIndicator {
+  opacity: 0;
+  transition: opacity .3s ease-in;
+  outline: none;
+}
+.sapUiLocalBusyIndicatorFade {
+  opacity: 1;
+}
+
+@keyframes sapUiBusyAnimationStandard {
+  0%, 80%, 100% {
+      transform: scale(.4);
+  }
+  40% {
+    transform: scale(1);
+  }
+}
+
+/* [END] 기본 Busy Indicator Css */

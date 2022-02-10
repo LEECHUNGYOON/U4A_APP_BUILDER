@@ -1,0 +1,18 @@
+{
+    "browserWindow": {
+        "height": 800,
+        "width": 800,
+        "darkTheme": true,
+        "webPreferences":{
+            "devTools": true,
+            "nodeIntegration": true,
+            "enableRemoteModule":true
+        }
+       
+    },
+
+    "browserWindowInstance": {
+
+
+     }
+}
