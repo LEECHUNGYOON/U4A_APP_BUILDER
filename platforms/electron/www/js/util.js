@@ -271,6 +271,15 @@ oAPP.setWWWCompress = function () {
             continue;
         }
 
+        // 파일 권한 체크
+        var iFileChmod = FS.statSync(sDbgVerPath).mode;
+
+        // read 권한일 경우 change 권한으로 변환
+        if (iFileChmod == 33060) {
+            oAPP.setFileChangeChmod(sDbgVerPath);
+            // FS.chmodSync(sFilePath, 0o666);
+        }
+
         // 버전별 debug에 있는 파일을 release 폴더로 복사한다.
         FS.copySync(sDbgVerPath, sRelVerPath);
 
@@ -281,6 +290,15 @@ oAPP.setWWWCompress = function () {
         for (var j = 0; j < iWWWFolderLen; j++) {
 
             var sFilePath = sJsFolderPath + "\\" + aWWWFolders[j];
+
+            // 파일 권한 체크
+            var iFileChmod = FS.statSync(sFilePath).mode;
+
+            // read 권한일 경우 change 권한으로 변환
+            if (iFileChmod == 33060) {
+                oAPP.setFileChangeChmod(sFilePath);
+                // FS.chmodSync(sFilePath, 0o666);
+            }
 
             var sJsFileData = FS.readFileSync(sFilePath, 'utf-8');
 
@@ -362,7 +380,8 @@ oAPP.setWWWCompressforVersion = function (sVer) {
 
         // read 권한일 경우 change 권한으로 변환
         if (iFileChmod == 33060) {
-            FS.chmodSync(sFilePath, 0o666);
+            oAPP.setFileChangeChmod(sFilePath);
+            // FS.chmodSync(sFilePath, 0o666);
         }
 
         FS.writeFileSync(sFilePath, sCode, 'utf-8');
@@ -380,5 +399,12 @@ oAPP.setJsCompress = function (sCode) {
     return UGLIFYJS.minify(sCode);
 
 }; // end of setJsCompress
+
+// 파일을 change 권한으로 변환
+oAPP.setFileChangeChmod = function (sFilePath) {
+
+    FS.chmodSync(sFilePath, 0o666);
+
+}; // end of oAPP.changeFileChmod
 
 module.exports = oAPP;

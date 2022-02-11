@@ -277,18 +277,29 @@
                 oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
 
                     // temp -> u4a_www 폴더에 복사한다.
-                    var sTargetPath = U4A_WWW + "\\" + sVer;
+                    var sDbgPath = U4A_WWW_DBG + "\\" + sVer,
+                        sRelPath = U4A_WWW_REL + "\\" + sVer;
 
-                    // 기존꺼 삭제한다.
-                    FS.removeSync(sTargetPath);
+                    // debug, release 폴더에 있는 기존버전 파일을 삭제한다.
+                    FS.removeSync(sDbgPath);
+                    FS.removeSync(sRelPath);
 
-                    FS.copy(sExtractFolderPath, sTargetPath, {
+                    // debug 폴더에 업데이트 버전 파일을 복사한다.
+                    FS.copySync(sExtractFolderPath, sDbgPath);
+
+                    FS.copy(sExtractFolderPath, sRelPath, {
                         overwrite: true
                     }).then(function () {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
                         FS.removeSync(sExtractFolderPath);
+
+                        // 신규 버전에 따른 www 폴더 compress
+                        var oRetCod = UTIL.setWWWCompressforVersion(sVer);
+                        if (oRetCod.RETCD == "E") {
+                            FS.removeSync(sRelPath);
+                        }                        
 
                         var oRetCod = {
                             RETCD: "S",
@@ -469,6 +480,10 @@
                 // 압축을 푼다.
                 oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
 
+                    // 신규 추가 버전 파일을 debug 폴더에 복사한다.
+                    var sDebugPath = U4A_WWW_DBG + "\\" + sNewVer;
+                    FS.copySync(sExtractFolderPath, sDebugPath);
+
                     // temp -> u4a_www 폴더에 복사한다.
                     var sTargetPath = U4A_WWW_REL + "\\" + sNewVer;
                     FS.copy(sExtractFolderPath, sTargetPath).then(function () {
@@ -477,15 +492,19 @@
                         FS.removeSync(sFileName);
                         FS.removeSync(sExtractFolderPath);
 
-                        debugger;
-
-                        // var aFolders = FS.readdirSync(U4A_WWW_REL);
-
                         // 신규 버전에 따른 www 폴더 compress
                         var oRetCod = UTIL.setWWWCompressforVersion(sNewVer);
-                        if(oRetCod.RETCD == "E"){
+                        if (oRetCod.RETCD == "E") {
                             FS.removeSync(sTargetPath);
                         }
+
+                        var aFolders = FS.readdirSync(U4A_WWW_REL);
+
+                        var oRetCod = {
+                            RETCD: "S",
+                            MSGTXT: "신규버전 생성 완료!",
+                            DATA: aFolders
+                        };
 
                         res.end(JSON.stringify(oRetCod));
 
