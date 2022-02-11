@@ -1,22 +1,23 @@
 const
+    REMOTE = require('electron').remote,
+    PATH = require('path'),
     FS = require('fs-extra'),
     UGLIFYJS = require("uglify-js"),
     RANDOMKEY = require('random-key'),
-    TEMP_PATH = "C:\\Temp",
-    U4A_BUILD_PATH = TEMP_PATH + "\\u4a_app_build",
-    U4A_WWW = TEMP_PATH + "\\u4a_www",
-    U4A_WWW_DBG = U4A_WWW + "\\debug",
-    U4A_WWW_REL = U4A_WWW + "\\release";
+    ELECTRONAPP = REMOTE.app,
+    APPPATH = ELECTRONAPP.getAppPath(),
+    CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
+    PATHINFO = require(CONFPATH).pathInfo;
 
 var oAPP = {};
 
 oAPP.getRandomKey = function (fnSuccess) {
 
     var sRandomKey = RANDOMKEY.generate(60),
-        sCreateFolderPath = U4A_BUILD_PATH + "\\" + sRandomKey;
+        sCreateFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
 
-    oAPP.mkDirBuildFolder(TEMP_PATH);
-    oAPP.mkDirBuildFolder(U4A_BUILD_PATH);
+    oAPP.mkDirBuildFolder(PATHINFO.TEMP_PATH);
+    oAPP.mkDirBuildFolder(PATHINFO.U4A_BUILD_PATH);
 
     FS.exists(sCreateFolderPath, function (bIsExists) {
 
@@ -255,16 +256,16 @@ oAPP.mkDirBuildFolder = function (sPath) {
 // www compress
 oAPP.setWWWCompress = function () {
 
-    var aDbgFolders = FS.readdirSync(U4A_WWW_DBG),
-        aRelFolders = FS.readdirSync(U4A_WWW_REL),
+    var aDbgFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
+        aRelFolders = FS.readdirSync(PATHINFO.U4A_WWW_REL),
         iDbgLength = aDbgFolders.length;
 
     for (var i = 0; i < iDbgLength; i++) {
 
         var sVerPath = aDbgFolders[i];
 
-        var sDbgVerPath = U4A_WWW_DBG + "\\" + sVerPath,
-            sRelVerPath = U4A_WWW_REL + "\\" + sVerPath;
+        var sDbgVerPath = PATHINFO.U4A_WWW_DBG + "\\" + sVerPath,
+            sRelVerPath = PATHINFO.U4A_WWW_REL + "\\" + sVerPath;
 
         var oFound = aRelFolders.find(element => element == sVerPath);
         if (typeof oFound != "undefined") {
@@ -337,7 +338,7 @@ oAPP.setWWWCompressforVersion = function (sVer) {
         DATA: ""
     };
 
-    var aRelFolders = FS.readdirSync(U4A_WWW_REL),
+    var aRelFolders = FS.readdirSync(PATHINFO.U4A_WWW_REL),
         oFound = aRelFolders.find(element => element == sVer);
 
     if (typeof oFound == "undefined") {
@@ -345,7 +346,7 @@ oAPP.setWWWCompressforVersion = function (sVer) {
         return oRetCod;
     }
 
-    var sRelVerPath = U4A_WWW_REL + "\\" + sVer,
+    var sRelVerPath = PATHINFO.U4A_WWW_REL + "\\" + sVer,
         sJsFolderPath = sRelVerPath + "\\www\\js",
 
         aWWWFolders = FS.readdirSync(sJsFolderPath),

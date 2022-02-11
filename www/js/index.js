@@ -13,17 +13,14 @@
         SHELL = REMOTE.shell,
         FS = require('fs-extra'),
         ZIP = require("zip-lib"),
-        UTIL = require(PATH.join(__dirname, "\\js\\util.js"));
+        UTIL = require(PATH.join(__dirname, "\\js\\util.js")),
+        APPPATH = ELECTRONAPP.getAppPath(),
+        CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
+        PATHINFO = require(CONFPATH).pathInfo;
 
     /************************************************************************************************
      * Common Variables..
      ************************************************************************************************/
-    const
-        TEMP_PATH = "C:\\Temp",
-        U4A_BUILD_PATH = TEMP_PATH + "\\u4a_app_build",
-        U4A_WWW = TEMP_PATH + "\\u4a_www",
-        U4A_WWW_DBG = U4A_WWW + "\\debug",
-        U4A_WWW_REL = U4A_WWW + "\\release";
 
     var CONNCOUNT = 0,
         oAPP = {};
@@ -101,11 +98,18 @@
                     oAPP.onPingCheck(req, res);
                     break;
 
-                case "/getVersions": // 버전 리스트 구하기
-                    oAPP.getVersionList(req, res);
+                    // 앱 생성시 필요한 정보들 구하기
+                    // 예) app version 정보,
+                    //     plugin 정보 등.
+                case "/getAppMetadata":
+                    oAPP.getAppMetadata(req, res);
                     break;
 
-                case "/getWWWFile": // WWW 파일 전송
+                case "/setUpdatePluginList":
+                    oAPP.setUpdatePluginList(req, res);
+                    break;
+
+                case "/getWWWOriginFile": // WWW 원본 파일 전송
                     oAPP.getWWWFile(req, res);
                     break;
 
@@ -135,6 +139,138 @@
         });
 
     }; // end of oAPP.onStart
+
+    // 플러그인 목록 업데이트 하기
+    oAPP.setUpdatePluginList = function (req, res) {
+
+        const
+            FORMIDABLE = require('formidable'),
+            FORM = FORMIDABLE({
+                multiples: true
+            });
+
+        //클라이언트에서 파라메터 전송 data 존재하면 여길 callback
+        FORM.on('field', (fieldName, fieldValue) => {
+            FORM.emit('data', {
+                name: 'field',
+                key: fieldName,
+                value: fieldValue
+            });
+        });
+
+        //1.클라이언트에서 파일업로드 햇을경우 ... 시작 이벤트 
+        FORM.on('fileBegin', (formname, file) => {
+            FORM.emit('data', {
+                name: 'file',
+                formname,
+                value: file
+            });
+        });
+
+        //2.클라이언트에서 파일업로드 햇을경우 ... 시작 이벤트 
+        FORM.on('file', (fieid, file) => {
+            FORM.emit('data', {
+                name: 'field',
+                key: fieid,
+                value: file
+            });
+        });
+
+        //오류 이벤트 
+        FORM.on('error', (err) => {
+
+            console.log('error: ' + err);
+
+            res.end(JSON.stringify({
+                "RETCD": "E",
+                "MSGTXT": err.toString()
+            }));
+
+        });
+
+        //최종 
+        FORM.parse(req, (err, fields, files) => {
+
+            if (err) {
+
+                res.end(JSON.stringify({
+                    "RETCD": "E",
+                    "MSGTXT": err.toString()
+                }));
+
+                return;
+            }
+
+            var oFormData = {
+                FIELDS: fields,
+                FILES: files
+            };
+
+            // 업데이트           
+            oAPP._setUpdatePluginList(req, res, oFormData);
+
+        });
+
+
+    }; // end of oAPP.setUpdatePluginList
+
+    oAPP._setUpdatePluginList = function (req, res, oFormData) {
+
+        debugger;
+
+        var oFields = oFormData["FIELDS"];
+
+        if (typeof oFields === "undefined") {
+
+            res.end(JSON.stringify({
+                "RETCD": "E",
+                "MSGTXT": "Plugin 정보가 없습니다."
+            }));
+
+            return;
+        }
+
+        var sEncode = oFields.PLUGIN,
+            sDecode = decodeURIComponent(sEncode),
+            aPlugins = JSON.parse(sDecode);
+
+        var oFound = aPlugins.find(element => element == "");
+
+
+
+    }; // end of oAPP._setUpdatePluginList
+
+    // 앱 생성시 필요한 정보들 구하기
+    // 예) app version 정보,
+    //     plugin 정보 등.
+    oAPP.getAppMetadata = function (req, res) {
+
+        // 버전 정보 구하기.
+        var oRetCod = oAPP.getVersionList();
+        if (oRetCod == 'E') {
+            res.end(JSON.stringify(oRetCod));
+            return;
+        }
+
+        // plugin 정보 구하기
+        var sPluginPath = PATH.join(APPPATH, "conf") + "\\plugin.json",
+            oPluginJson = require(sPluginPath),
+            aPlugins = oPluginJson.plugins;
+
+        var oAppInfo = {
+            VERLIST: oRetCod.DATA, // Version List
+            PLUGINS: aPlugins
+        };
+
+        var oRetCod = {
+            RETCD: "S",
+            MSG: "",
+            DATA: oAppInfo
+        };
+
+        res.end(JSON.stringify(oRetCod));
+
+    }; // end of oAPP.getAppMetadata
 
     // update
     oAPP.onUpdateWWW = function (req, res) {
@@ -252,7 +388,7 @@
                 return;
             }
 
-            var sFileName = TEMP_PATH + "\\" + sVer + ".zip";
+            var sFileName = PATHINFO.TEMP_PATH + "\\" + sVer + ".zip";
 
             // www 압축파일을 Temp 폴더에 저장한다.
             FS.writeFile(sFileName, data, (err) => {
@@ -271,14 +407,14 @@
                     overwrite: true
                 };
 
-                var sExtractFolderPath = TEMP_PATH + "\\" + sVer;
+                var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sVer;
 
                 // 압축 풀기
                 oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
 
-                    // temp -> u4a_www 폴더에 복사한다.
-                    var sDbgPath = U4A_WWW_DBG + "\\" + sVer,
-                        sRelPath = U4A_WWW_REL + "\\" + sVer;
+                    // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
+                    var sDbgPath = PATHINFO.U4A_WWW_DBG + "\\" + sVer,
+                        sRelPath = PATHINFO.U4A_WWW_REL + "\\" + sVer;
 
                     // debug, release 폴더에 있는 기존버전 파일을 삭제한다.
                     FS.removeSync(sDbgPath);
@@ -299,7 +435,7 @@
                         var oRetCod = UTIL.setWWWCompressforVersion(sVer);
                         if (oRetCod.RETCD == "E") {
                             FS.removeSync(sRelPath);
-                        }                        
+                        }
 
                         var oRetCod = {
                             RETCD: "S",
@@ -455,8 +591,7 @@
                 return;
             }
 
-            // var sFileName = U4A_WWW + "\\" + sNewVer + ".zip";
-            var sFileName = TEMP_PATH + "\\" + sNewVer + ".zip";
+            var sFileName = PATHINFO.TEMP_PATH + "\\" + sNewVer + ".zip";
 
             // www 압축파일을 Temp 폴더에 저장한다.
             FS.writeFile(sFileName, data, (err) => {
@@ -475,17 +610,17 @@
                     overwrite: true
                 };
 
-                var sExtractFolderPath = TEMP_PATH + "\\" + sNewVer;
+                var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sNewVer;
 
                 // 압축을 푼다.
                 oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
 
                     // 신규 추가 버전 파일을 debug 폴더에 복사한다.
-                    var sDebugPath = U4A_WWW_DBG + "\\" + sNewVer;
+                    var sDebugPath = PATHINFO.U4A_WWW_DBG + "\\" + sNewVer;
                     FS.copySync(sExtractFolderPath, sDebugPath);
 
-                    // temp -> u4a_www 폴더에 복사한다.
-                    var sTargetPath = U4A_WWW_REL + "\\" + sNewVer;
+                    // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
+                    var sTargetPath = PATHINFO.U4A_WWW_REL + "\\" + sNewVer;
                     FS.copy(sExtractFolderPath, sTargetPath).then(function () {
 
                         // 압축 파일등을 삭제한다.
@@ -498,7 +633,7 @@
                             FS.removeSync(sTargetPath);
                         }
 
-                        var aFolders = FS.readdirSync(U4A_WWW_REL);
+                        var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_REL);
 
                         var oRetCod = {
                             RETCD: "S",
@@ -527,7 +662,7 @@
 
     oAPP.getLastVersion = function () {
 
-        var aFolders = FS.readdirSync(U4A_WWW_DBG),
+        var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
 
         if (iFolderLengh == 0) {
@@ -539,27 +674,26 @@
     };
 
     // 버전 리스트 구하기
-    oAPP.getVersionList = function (req, res) {
+    oAPP.getVersionList = function () {
 
         var oRetCod = {
             RETCD: "",
             MSG: ""
         };
 
-        var aFolders = FS.readdirSync(U4A_WWW_DBG),
+        var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
 
         if (iFolderLengh == 0) {
             oRetCod.RETCD = "E";
             oRetCod.MSG = "버전정보가 없습니다. \n 관리자에게 문의하세요.";
-            res.end(JSON.stringify(oRetCod));
-            return;
+            return oRetCod;
         }
 
         oRetCod.RETCD = "S";
         oRetCod.DATA = aFolders;
 
-        res.end(JSON.stringify(oRetCod));
+        return oRetCod;
 
     }; // end of oAPP.getVersionList
 
@@ -655,13 +789,9 @@
     // WWW 파일을 구한다.
     oAPP._getWWWFile = function (res, req, oFormData) {
 
-        // TEMP_PATH = "C:\\Temp",
-        // U4A_BUILD_PATH = TEMP_PATH + "\\U4A_APP_BUILD",
-        // U4A_WWW = TEMP_PATH + "\\u4a_www";
-
         var oFields = oFormData.FIELDS,
             sVer = oFields.VER,
-            sFolderPath = U4A_WWW_DBG + "\\" + sVer;
+            sFolderPath = PATHINFO.U4A_WWW_DBG + "\\" + sVer;
 
         // 해당 버전 폴더가 없으면 오류
         if (!FS.existsSync(sFolderPath)) {
@@ -677,7 +807,7 @@
         const zl = require("zip-lib");
 
         var sFileName = sVer + ".zip",
-            sTargetPath = TEMP_PATH + "\\" + sFileName;
+            sTargetPath = PATHINFO.TEMP_PATH + "\\" + sFileName;
 
         // www 폴더를 압축한다.
         zl.archiveFolder(sFolderPath, sTargetPath).then(function () {
@@ -738,8 +868,8 @@
             FS.mkdirSync(sTmpPath);
         }
 
-        // c:\Temp\U4A_WWW 폴더 여부 체크
-        var sTmpOrgPath = U4A_WWW,
+        // c:\Temp\PATHINFO.U4A_WWW 폴더 여부 체크
+        var sTmpOrgPath = PATHINFO.U4A_WWW,
             isExsist = FS.existsSync(sTmpOrgPath);
 
         if (!isExsist) {
@@ -786,13 +916,6 @@
      ************************************************************************************************/
     oAPP.onCheckRequireFolder = function () {
 
-        // const
-        // TEMP_PATH = "C:\\Temp",
-        // U4A_BUILD_PATH = TEMP_PATH + "\\u4a_app_build",
-        // U4A_WWW = TEMP_PATH + "\\u4a_www",
-        // U4A_WWW_DBG = U4A_WWW + "\\debug",
-        // U4A_WWW_REL = U4A_WWW + "\\release";
-
         var oRetCod = {
             RETCD: "",
             MSG: ""
@@ -801,40 +924,40 @@
         const FS = require('fs-extra');
 
         // [C:\Temp]
-        if (!FS.existsSync(TEMP_PATH)) {
-            FS.mkdirSync(TEMP_PATH);
+        if (!FS.existsSync(PATHINFO.TEMP_PATH)) {
+            FS.mkdirSync(PATHINFO.TEMP_PATH);
         }
 
         // [C:\Temp\u4a_app_build]
-        if (!FS.existsSync(U4A_BUILD_PATH)) {
-            FS.mkdirSync(U4A_BUILD_PATH);
+        if (!FS.existsSync(PATHINFO.U4A_BUILD_PATH)) {
+            FS.mkdirSync(PATHINFO.U4A_BUILD_PATH);
         }
 
-        // [C:\Temp\u4a_www]
-        if (!FS.existsSync(U4A_WWW)) {
-            FS.mkdirSync(U4A_WWW);
+        // [C:\Temp\PATHINFO.U4A_WWW]
+        if (!FS.existsSync(PATHINFO.U4A_WWW)) {
+            FS.mkdirSync(PATHINFO.U4A_WWW);
         }
 
-        // [C:\Temp\u4a_www\debug]
-        if (!FS.existsSync(U4A_WWW_DBG)) {
-            FS.mkdirSync(U4A_WWW_DBG);
+        // [C:\Temp\PATHINFO.U4A_WWW\debug]
+        if (!FS.existsSync(PATHINFO.U4A_WWW_DBG)) {
+            FS.mkdirSync(PATHINFO.U4A_WWW_DBG);
         }
 
-        // [C:\Temp\u4a_www\release]
-        if (!FS.existsSync(U4A_WWW_REL)) {
-            FS.mkdirSync(U4A_WWW_REL);
+        // [C:\Temp\PATHINFO.U4A_WWW\release]
+        if (!FS.existsSync(PATHINFO.U4A_WWW_REL)) {
+            FS.mkdirSync(PATHINFO.U4A_WWW_REL);
         }
 
-        var aFolders = FS.readdirSync(U4A_WWW_DBG),
+        var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
 
         if (iFolderLengh == 0) {
 
             // WWW 파일을 넣을 폴더를 열어준다.
-            SHELL.openExternal(U4A_WWW_DBG);
+            SHELL.openExternal(PATHINFO.U4A_WWW_DBG);
 
             oRetCod.RETCD = "E";
-            oRetCod.MSG = "WWW 파일을 넣고 재실행 해 주세요! \n 확인버튼을 누르면 재실행 됩니다 \n 경로: " + U4A_WWW_DBG;
+            oRetCod.MSG = "WWW 파일을 넣고 재실행 해 주세요! \n 확인버튼을 누르면 재실행 됩니다 \n 경로: " + PATHINFO.U4A_WWW_DBG;
 
             return oRetCod;
         }
@@ -1032,7 +1155,7 @@
         var NODECMD = require("node-cmd"),
             oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
-            sFolderPath = U4A_BUILD_PATH + "\\" + sRandomKey;
+            sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
 
         // cordova android 생성
         var sCmd = "cd c:\\";
@@ -1072,7 +1195,7 @@
         const FS = require('fs-extra');
 
         // 원본 폴더 읽기
-        FS.readdir(U4A_WWW, (err, aFiles) => {
+        FS.readdir(PATHINFO.U4A_WWW, (err, aFiles) => {
 
             if (err) {
                 console.error(err);
@@ -1099,8 +1222,8 @@
             var sVerPath = aFiles[iOrgFileLength - 1], // 최신 버전 폴더명         
                 oFields = oFormData.FIELDS,
                 sAppId = oFields.APPID,
-                sFolderPath = U4A_BUILD_PATH, // build 폴더 경로            
-                sSourcePath = U4A_WWW + "\\" + sVerPath, // 복사 대상 폴더 위치
+                sFolderPath = PATHINFO.U4A_BUILD_PATH, // build 폴더 경로            
+                sSourcePath = PATHINFO.U4A_WWW + "\\" + sVerPath, // 복사 대상 폴더 위치
                 sTargetPath = sFolderPath + "\\" + sRandomKey + "\\" + sAppId; // 붙여넣을 폴더 위치
 
             FS.copy(sSourcePath, sTargetPath).then(function () {
@@ -1140,7 +1263,7 @@
                 PARAM: oFields["PARAM"]
             };
 
-        var sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+        var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
             sIndexJsPath = sBuildAppPath + "\\www\\js\\index.js";
 
         FS.readFile(sIndexJsPath, {
@@ -1207,7 +1330,7 @@
             oFiles = oFormData.FILES,
             sAppId = oFields.APPID,
             sAppDesc = oFields.APPDESC,
-            sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
             sConfigXmlPath = sBuildAppPath + "\\config.xml",
             oReadFileOptions = {
                 encoding: "utf-8"
@@ -1296,7 +1419,7 @@
                     return;
                 }
 
-                var sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+                var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
                     sLogoImgPath = sBuildAppPath + "\\www\\img\\logo.png";
 
                 FS.unlink(sLogoImgPath, function (err) {
@@ -1351,7 +1474,7 @@
                     return;
                 }
 
-                var sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+                var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
                     sLogoImgPath = sBuildAppPath + "\\www\\img\\intro.png";
 
                 FS.unlink(sLogoImgPath, function (err) {
@@ -1387,7 +1510,7 @@
 
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
-            sFolderPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+            sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
         // cordova android 생성
         var sCmd = "cd c:\\";
@@ -1426,13 +1549,13 @@
         const NODECMD = require("node-cmd");
 
         var sAppPath = ELECTRONAPP.getAppPath(),
-            sConfPath = PATH.join(sAppPath, "conf") + "\\config.json",
+            sPluginPath = PATH.join(sAppPath, "conf") + "\\plugin.json",
             oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
-            sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        var oConfJson = require(sConfPath),
-            aPlugins = oConfJson.plugins,
+        var oPluginJson = require(sPluginPath),
+            aPlugins = oPluginJson.plugins,
             iPluginLen = aPlugins.length;
 
         // cordova android 생성
@@ -1478,7 +1601,7 @@
         // cordova android 생성
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
-            sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
         var sCmd = "cd c:\\";
         sCmd += " && cd " + sBuildAppPath;
@@ -1517,7 +1640,7 @@
 
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
-            sBuildAppPath = U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
             sAppPath = sBuildAppPath + "\\platforms\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk";
 
         console.log("apk file read start. ---->" + sAppId);
@@ -1569,7 +1692,7 @@
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID;
 
-        var sFolderPath = U4A_BUILD_PATH + "\\" + sRandomKey;
+        var sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
 
         console.log("빌드폴더 삭제시작--- (" + sAppId + ") " + sRandomKey);
 
