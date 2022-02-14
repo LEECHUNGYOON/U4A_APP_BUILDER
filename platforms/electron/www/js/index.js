@@ -214,7 +214,7 @@
 
     }; // end of oAPP.setUpdatePluginList
 
-    oAPP._setUpdatePluginList = function(req, res, oFormData){
+    oAPP._setUpdatePluginList = function (req, res, oFormData) {
 
         debugger;
 
@@ -233,6 +233,8 @@
         var sEncode = oFields.PLUGIN,
             sDecode = decodeURIComponent(sEncode),
             aPlugins = JSON.parse(sDecode);
+
+        var oFound = aPlugins.find(element => element == "");
 
 
 
@@ -684,7 +686,7 @@
 
         if (iFolderLengh == 0) {
             oRetCod.RETCD = "E";
-            oRetCod.MSG = "버전정보가 없습니다. \n 관리자에게 문의하세요.";            
+            oRetCod.MSG = "버전정보가 없습니다. \n 관리자에게 문의하세요.";
             return oRetCod;
         }
 
