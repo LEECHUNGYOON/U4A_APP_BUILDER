@@ -216,8 +216,6 @@
 
     oAPP._setUpdatePluginList = function (req, res, oFormData) {
 
-        debugger;
-
         var oFields = oFormData["FIELDS"];
 
         if (typeof oFields === "undefined") {
@@ -232,11 +230,26 @@
 
         var sEncode = oFields.PLUGIN,
             sDecode = decodeURIComponent(sEncode),
-            aPlugins = JSON.parse(sDecode);
+            aPlugins = JSON.parse(sDecode),
+            iPluginLength = aPlugins.length;
 
-        var oFound = aPlugins.find(element => element == "");
+        for (var i = iPluginLength - 1; i >= 0; i--) {
+            if (aPlugins[i] == "") {
+                aPlugins.splice(i, 1);
+            }
+        }
 
+        var sPluginPath = PATH.join(APPPATH, "conf\\plugin.json");
 
+        var oPlugin = require(sPluginPath);
+
+        oPlugin.plugins = aPlugins;
+
+        var oJsonData = JSON.stringify(oPlugin);
+
+        FS.writeFileSync(sPluginPath, oJsonData, 'utf-8');
+
+        oAPP.getAppMetadata(req, res);
 
     }; // end of oAPP._setUpdatePluginList
 
@@ -262,6 +275,8 @@
             PLUGINS: aPlugins
         };
 
+        // ELECTRONAPP.getPath("userData")
+        
         var oRetCod = {
             RETCD: "S",
             MSG: "",
