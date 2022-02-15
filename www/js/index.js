@@ -948,19 +948,37 @@
             FS.mkdirSync(PATHINFO.U4A_BUILD_PATH);
         }
 
-        // [C:\Temp\PATHINFO.U4A_WWW]
+        // [C:\Temp\\U4A_WWW]
         if (!FS.existsSync(PATHINFO.U4A_WWW)) {
             FS.mkdirSync(PATHINFO.U4A_WWW);
         }
 
-        // [C:\Temp\PATHINFO.U4A_WWW\debug]
+        // [C:\Temp\U4A_WWW\debug]
         if (!FS.existsSync(PATHINFO.U4A_WWW_DBG)) {
             FS.mkdirSync(PATHINFO.U4A_WWW_DBG);
         }
 
-        // [C:\Temp\PATHINFO.U4A_WWW\release]
+        // [C:\Temp\U4A_WWW\release]
         if (!FS.existsSync(PATHINFO.U4A_WWW_REL)) {
             FS.mkdirSync(PATHINFO.U4A_WWW_REL);
+        }
+
+        // [C:\Temp\U4A_WWW\conf]
+        if (!FS.existsSync(PATHINFO.U4A_PLUG)) {
+            FS.mkdirSync(PATHINFO.U4A_PLUG);
+        }
+
+        // [C:\Temp\U4A_WWW\conf.json]
+        var sConfJsonPath = PATHINFO.U4A_PLUG + "\\plugins.json";
+        if(!FS.existsSync(sConfJsonPath)){
+
+            // conf 파일을 넣을 폴더를 열어준다.
+            SHELL.openExternal(PATHINFO.U4A_PLUG);
+
+            oRetCod.RETCD = "E";
+            oRetCod.MSG = "plugins.json 파일을 넣고 재실행 해 주세요! \n 확인버튼을 누르면 재실행 됩니다 \n 경로: " + PATHINFO.U4A_PLUG;
+
+            return oRetCod;
         }
 
         var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),

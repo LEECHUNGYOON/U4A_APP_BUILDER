@@ -4,6 +4,7 @@
         "U4A_BUILD_PATH": "C:\\u4a_temp\\u4a_app_build",
         "U4A_WWW": "C:\\u4a_temp\\u4a_www",
         "U4A_WWW_DBG": "C:\\u4a_temp\\u4a_www\\debug",
-        "U4A_WWW_REL": "C:\\u4a_temp\\u4a_www\\release"
+        "U4A_WWW_REL": "C:\\u4a_temp\\u4a_www\\release",
+        "U4A_PLUG" : "C:\\u4a_temp\\u4a_www\\plugins"
     }
 }
