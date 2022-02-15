@@ -233,23 +233,47 @@
             aPlugins = JSON.parse(sDecode),
             iPluginLength = aPlugins.length;
 
+        // 플러그인 리스트에 있는 공백 요소 제거
         for (var i = iPluginLength - 1; i >= 0; i--) {
             if (aPlugins[i] == "") {
                 aPlugins.splice(i, 1);
             }
         }
 
-        var sPluginPath = PATH.join(APPPATH, "conf\\plugin.json");
+        var sPluginPath = PATHINFO.U4A_PLUG_JSON,
+            bIsPluginExist = FS.existsSync(sPluginPath);
 
-        var oPlugin = require(sPluginPath);
+        // 플러그인 파일이 없을 경우
+        if (bIsPluginExist == false) {
 
-        oPlugin.plugins = aPlugins;
+            res.end(JSON.stringify({
+                RETCD: "E",
+                MSG: "Plugins.json 파일이 없습니다."
+            }));
 
-        var oJsonData = JSON.stringify(oPlugin);
+            return;
+        }
 
-        FS.writeFileSync(sPluginPath, oJsonData, 'utf-8');
+        var sPluginJson = JSON.stringify(aPlugins);
 
-        oAPP.getAppMetadata(req, res);
+        // www 압축파일을 Temp 폴더에 저장한다.
+        FS.writeFile(sPluginPath, sPluginJson, (err) => {
+
+            if (err) {
+
+                res.end(JSON.stringify({
+                    "RETCD": "E",
+                    "MSGTXT": err.toString()
+                }));
+
+                return;
+            }
+
+            // FS.writeFileSync(sPluginPath, sPluginJson, 'utf-8');
+
+            oAPP.getAppMetadata(req, res);
+
+        });
 
     }; // end of oAPP._setUpdatePluginList
 
@@ -259,29 +283,39 @@
     oAPP.getAppMetadata = function (req, res) {
 
         // 버전 정보 구하기.
-        var oRetCod = oAPP.getVersionList();
-        if (oRetCod == 'E') {
-            res.end(JSON.stringify(oRetCod));
+        var oResult = oAPP.getVersionList();
+        if (oResult.RETCD == 'E') {
+            res.end(JSON.stringify(oResult));
             return;
         }
 
         // plugin 정보 구하기
-        var sPluginPath = PATH.join(APPPATH, "conf") + "\\plugin.json",
-            oPluginJson = require(sPluginPath),
-            aPlugins = oPluginJson.plugins;
+        var sPluginPath = PATHINFO.U4A_PLUG_JSON,
+            bIsPluginExist = FS.existsSync(sPluginPath);
 
-        var oAppInfo = {
-            VERLIST: oRetCod.DATA, // Version List
-            PLUGINS: aPlugins
-        };
+        // 플러그인 파일이 없을 경우
+        if (bIsPluginExist == false) {
 
-        // ELECTRONAPP.getPath("userData")
-        
-        var oRetCod = {
-            RETCD: "S",
-            MSG: "",
-            DATA: oAppInfo
-        };
+            res.end(JSON.stringify({
+                RETCD: "E",
+                MSG: "Plugins.json 파일이 없습니다."
+            }));
+
+            return;
+        }
+        var sPluginInfo = FS.readFileSync(sPluginPath, 'utf-8');
+
+        // 플러그인 정보, www 버전 리스트 정보를 리턴해준다.
+        var aPlugins = JSON.parse(sPluginInfo),
+            oAppInfo = {
+                VERLIST: oResult.DATA, // Version List
+                PLUGINS: aPlugins
+            },
+            oRetCod = {
+                RETCD: "S",
+                MSG: "",
+                DATA: oAppInfo
+            };
 
         res.end(JSON.stringify(oRetCod));
 
@@ -418,9 +452,9 @@
                     return;
                 }
 
-                var oOpt = {
-                    overwrite: true
-                };
+                // var oOpt = {
+                //     overwrite: true
+                // };
 
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sVer;
 
@@ -621,9 +655,9 @@
                     return;
                 }
 
-                var oOpt = {
-                    overwrite: true
-                };
+                // var oOpt = {
+                //     overwrite: true
+                // };
 
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sNewVer;
 
@@ -963,14 +997,14 @@
             FS.mkdirSync(PATHINFO.U4A_WWW_REL);
         }
 
-        // [C:\Temp\U4A_WWW\conf]
+        // [C:\Temp\U4A_WWW\plugins]
         if (!FS.existsSync(PATHINFO.U4A_PLUG)) {
             FS.mkdirSync(PATHINFO.U4A_PLUG);
         }
 
         // [C:\Temp\U4A_WWW\conf.json]
         var sConfJsonPath = PATHINFO.U4A_PLUG + "\\plugins.json";
-        if(!FS.existsSync(sConfJsonPath)){
+        if (!FS.existsSync(sConfJsonPath)) {
 
             // conf 파일을 넣을 폴더를 열어준다.
             SHELL.openExternal(PATHINFO.U4A_PLUG);
@@ -979,6 +1013,7 @@
             oRetCod.MSG = "plugins.json 파일을 넣고 재실행 해 주세요! \n 확인버튼을 누르면 재실행 됩니다 \n 경로: " + PATHINFO.U4A_PLUG;
 
             return oRetCod;
+
         }
 
         var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),

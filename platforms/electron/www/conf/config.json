@@ -5,6 +5,7 @@
         "U4A_WWW": "C:\\u4a_temp\\u4a_www",
         "U4A_WWW_DBG": "C:\\u4a_temp\\u4a_www\\debug",
         "U4A_WWW_REL": "C:\\u4a_temp\\u4a_www\\release",
-        "U4A_PLUG" : "C:\\u4a_temp\\u4a_www\\plugins"
+        "U4A_PLUG" : "C:\\u4a_temp\\u4a_www\\plugins",
+        "U4A_PLUG_JSON": "C:\\u4a_temp\\u4a_www\\plugins\\plugins.json"
     }
 }
