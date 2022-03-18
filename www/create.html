@@ -244,8 +244,8 @@
 
         <!-- Debug 여부 -->
         <div class="form-example">
-            <label for="appid">Debug Mode? </label>
-            <input type="checkbox" name="debug" id="debugcb" value="debug">            
+            <label for="debugcb">Debug Mode? </label>
+            <input type="checkbox" name="debugcb" id="debugcb" value="debug">            
         </div>
 
         <!-- APP ID -->
@@ -343,7 +343,7 @@
                 console.log("build button click!!");
 
                 var sCreatePath = sUrl,
-
+                    oDebugcb = document.getElementById("debugcb"),
                     oAppid = document.getElementById("appid"),
                     oAppdesc = document.getElementById("appdesc"),
                     oShortcut = document.getElementById("shortcut"),
@@ -355,6 +355,7 @@
                     oParam = document.getElementById("parameters");
 
                 var oTargetData = {
+                    ISDBG: oDebugcb.checked,
                     APPID: oAppid.value,
                     APPDESC: oAppdesc.value,
                     SHORTCUT: oShortcut.files[0],
@@ -378,6 +379,7 @@
                 }
 
                 var oForm = new FormData();
+                oForm.append("ISDBG", oTargetData.ISDBG == true ? "X" : "");
                 oForm.append("APPID", oTargetData.APPID);
                 oForm.append("APPDESC", oTargetData.APPDESC);
                 oForm.append("PROTO", oTargetData.PROTO);

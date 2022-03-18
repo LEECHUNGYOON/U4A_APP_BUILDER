@@ -133,7 +133,6 @@
                     oAPP.onErrorPage(req, res);
                     break;
 
-                    // res.end();
             }
 
         });
@@ -905,60 +904,60 @@
 
     }; // end of oAPP._getWWWFile
 
-    // 복사할 original file을 c:\temp 에 복사한다.
-    oAPP.onInstallOrgFiles = function (fnSuccess) {
+    // // 복사할 original file을 c:\temp 에 복사한다.
+    // oAPP.onInstallOrgFiles = function (fnSuccess) {
 
-        var FS = require('fs-extra'),
-            sTmpPath = "c:\\Temp",
-            isExsist = FS.existsSync(sTmpPath);
+    //     var FS = require('fs-extra'),
+    //         sTmpPath = "c:\\Temp",
+    //         isExsist = FS.existsSync(sTmpPath);
 
-        // c:\ 에 Temp 폴더 여부 체크
-        if (!isExsist) {
-            FS.mkdirSync(sTmpPath);
-        }
+    //     // c:\ 에 Temp 폴더 여부 체크
+    //     if (!isExsist) {
+    //         FS.mkdirSync(sTmpPath);
+    //     }
 
-        // c:\Temp\PATHINFO.U4A_WWW 폴더 여부 체크
-        var sTmpOrgPath = PATHINFO.U4A_WWW,
-            isExsist = FS.existsSync(sTmpOrgPath);
+    //     // c:\Temp\PATHINFO.U4A_WWW 폴더 여부 체크
+    //     var sTmpOrgPath = PATHINFO.U4A_WWW,
+    //         isExsist = FS.existsSync(sTmpOrgPath);
 
-        if (!isExsist) {
-            FS.mkdirSync(sTmpOrgPath);
-        }
+    //     if (!isExsist) {
+    //         FS.mkdirSync(sTmpOrgPath);
+    //     }
 
-        var sAppPath = ELECTRONAPP.getAppPath(),
-            sOrgPath = PATH.join(sAppPath, "origin");
+    //     var sAppPath = ELECTRONAPP.getAppPath(),
+    //         sOrgPath = PATH.join(sAppPath, "origin");
 
-        // 원본 폴더 읽기
-        FS.readdir(sOrgPath, (err, aFiles) => {
+    //     // 원본 폴더 읽기
+    //     FS.readdir(sOrgPath, (err, aFiles) => {
 
-            if (err) {
-                console.error(err);
-                return;
-            }
+    //         if (err) {
+    //             console.error(err);
+    //             return;
+    //         }
 
-            var iOrgFileLength = aFiles.length;
-            if (iOrgFileLength <= 0) {
-                return;
-            }
+    //         var iOrgFileLength = aFiles.length;
+    //         if (iOrgFileLength <= 0) {
+    //             return;
+    //         }
 
-            var sVerPath = aFiles[iOrgFileLength - 1], // 최신 버전 폴더명                       
-                sSourcePath = sOrgPath + "\\" + sVerPath; // 복사 대상 폴더 위치
+    //         var sVerPath = aFiles[iOrgFileLength - 1], // 최신 버전 폴더명                       
+    //             sSourcePath = sOrgPath + "\\" + sVerPath; // 복사 대상 폴더 위치
 
-            // Async with promises:
-            FS.copy(sSourcePath, sTmpOrgPath).then(function () {
+    //         // Async with promises:
+    //         FS.copy(sSourcePath, sTmpOrgPath).then(function () {
 
-                console.log('origin file copy success!!');
-                fnSuccess();
+    //             console.log('origin file copy success!!');
+    //             fnSuccess();
 
-            }).catch(function (err) {
+    //         }).catch(function (err) {
 
-                console.error(err);
+    //             console.error(err);
 
-            }); // end of FS.copy
+    //         }); // end of FS.copy
 
-        }); // end of FS.readdir
+    //     }); // end of FS.readdir
 
-    }; // end of oAPP.onInstallOrgFiles
+    // }; // end of oAPP.onInstallOrgFiles
 
     /************************************************************************************************
      * 필수 폴더 존재 여부 확인
@@ -1262,8 +1261,18 @@
 
         const FS = require('fs-extra');
 
+        var oFields = oFormData.FIELDS,
+            isDbg = oFields.ISDBG,
+            sWWWFolderPath = "";
+
+        if (isDbg == "X") {
+            sWWWFolderPath = PATHINFO.U4A_WWW_DBG;
+        } else {
+            sWWWFolderPath = PATHINFO.U4A_WWW_REL;
+        }
+
         // 원본 폴더 읽기
-        FS.readdir(PATHINFO.U4A_WWW, (err, aFiles) => {
+        FS.readdir(sWWWFolderPath, (err, aFiles) => {
 
             if (err) {
                 console.error(err);
@@ -1275,6 +1284,7 @@
 
                 return;
             }
+
 
             var iOrgFileLength = aFiles.length;
             if (iOrgFileLength <= 0) {
@@ -1291,7 +1301,7 @@
                 oFields = oFormData.FIELDS,
                 sAppId = oFields.APPID,
                 sFolderPath = PATHINFO.U4A_BUILD_PATH, // build 폴더 경로            
-                sSourcePath = PATHINFO.U4A_WWW + "\\" + sVerPath, // 복사 대상 폴더 위치
+                sSourcePath = sWWWFolderPath + "\\" + sVerPath, // 복사 대상 폴더 위치
                 sTargetPath = sFolderPath + "\\" + sRandomKey + "\\" + sAppId; // 붙여넣을 폴더 위치
 
             FS.copy(sSourcePath, sTargetPath).then(function () {
@@ -1616,14 +1626,13 @@
 
         const NODECMD = require("node-cmd");
 
-        var sAppPath = ELECTRONAPP.getAppPath(),
-            sPluginPath = PATH.join(sAppPath, "conf") + "\\plugin.json",
+        var sPluginPath = PATHINFO.U4A_PLUG_JSON,
             oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
             sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        var oPluginJson = require(sPluginPath),
-            aPlugins = oPluginJson.plugins,
+        var aPluginJson = require(sPluginPath),
+            aPlugins = aPluginJson,
             iPluginLen = aPlugins.length;
 
         // cordova android 생성
@@ -1731,20 +1740,20 @@
             // 빌드한 폴더 삭제
             // oAPP.removeBuildFolder(req, res, oFormData, sRandomKey, function () {
 
-            console.log("apk file read success and response file. ---->" + sAppId);
+                console.log("apk file read success and response file. ---->" + sAppId);
 
-            var sAppName = sAppId + ".apk";
+                var sAppName = sAppId + ".apk";
 
-            res.setHeader("extend", "apk"); //확장자 
-            res.setHeader("fname", sAppName); //파일명 
-            res.writeHead(200, {
-                "Content-Type": "application/vnd.android.package-archive"
-            }); //mime type
+                res.setHeader("extend", "apk"); //확장자 
+                res.setHeader("fname", sAppName); //파일명 
+                res.writeHead(200, {
+                    "Content-Type": "application/vnd.android.package-archive"
+                }); //mime type
 
-            res.write(data);
-            res.end();
+                res.write(data);
+                res.end();
 
-            console.log("--------------- apk file return!!!-- (" + sAppId + ") ----------------");
+                console.log("--------------- apk file return!!!-- (" + sAppId + ") ----------------");
 
             // });
 
