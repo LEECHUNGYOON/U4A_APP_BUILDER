@@ -1593,7 +1593,7 @@
         // cordova android 생성
         var sCmd = "cd c:\\";
         sCmd += " && cd " + sFolderPath;
-        sCmd += " && cordova platform add android";
+        sCmd += " && cordova platform add android@9.1.0";
 
         console.log("cordova platform [---" + sAppId + "---] add Start!!!");
 
