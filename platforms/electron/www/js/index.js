@@ -1613,7 +1613,7 @@
             console.log(data);
 
             console.log("cordova platform [---" + sAppId + "---] add Finish!!!");
-            
+
             oAPP.onCopyBuildExtraFile(req, res, oFormData, sRandomKey).then(() => {
 
                 // plugin 설치            
@@ -1630,19 +1630,15 @@
 
         return new Promise(function(resolve, reject) {
 
-            resolve();
-
-
-            return;
-
-
-
             var oFields = oFormData.FIELDS,
                 sAppId = oFields.APPID,
+                sBuildExtraFileName = "build-extras.gradle",
                 sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId + "\\platforms\\android\\app",
+                sCopyTargetPath = PATH.join(sFolderPath, sBuildExtraFileName),
                 isDbg = oFields.ISDBG;
 
-            var sOrgBuildExtraFilePath = ELECTRONAPP.getAppPath() + "\\extra\\build-extras.gradle";
+            var sOrgBuildExtraFileFolderPath = ELECTRONAPP.getAppPath() + "\\extra",
+                sOrgBuildExtraFilePath = PATH.join(sOrgBuildExtraFileFolderPath, sBuildExtraFileName);
 
             // debug 모드일 경우 build-extra.gradle 파일 복사를 하지 않는다.
             if (isDbg == "X") {
@@ -1650,7 +1646,7 @@
                 return;
             }
 
-            FS.copy(sOrgBuildExtraFilePath, sFolderPath).then(function() {
+            FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function() {
 
                 console.log('Build-extra.gradle 파일 복사 성공!!!! -->' + sAppId);
                 resolve();
@@ -1725,11 +1721,20 @@
         // cordova android 생성
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID,
+            isDbg = oFields.ISDBG,
             sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        var sCmd = "cd c:\\";
-        sCmd += " && cd " + sBuildAppPath;
-        sCmd += " && cordova build android";
+        // var sCmd = "cd c:\\";
+        // sCmd += " && cd " + sBuildAppPath;
+        // sCmd += " && cordova build android";
+
+        var sCmd = "";
+
+        if (isDbg == 'X') {
+            sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android`;
+        } else {
+            sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android --release`;
+        }
 
         console.log("android app build start. ---->" + sAppId);
 
@@ -1763,9 +1768,19 @@
         const FS = require('fs-extra');
 
         var oFields = oFormData.FIELDS,
+            isDbg = oFields.ISDBG,
             sAppId = oFields.APPID,
             sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
-            sAppPath = sBuildAppPath + "\\platforms\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk";
+            sReleaseAppPath = sBuildAppPath + "\\platforms\\android\\app\\build\\outputs\\apk\\release\\app-release-unsigned.apk",
+            sDebugAppPath = sBuildAppPath + "\\platforms\\android\\app\\build\\outputs\\apk\\debug\\app-debug.apk",
+            sAppPath = "";
+
+        if(isDbg == "X"){
+            sAppPath = sDebugAppPath;
+        }
+        else {
+            sAppPath = sReleaseAppPath;
+        }
 
         console.log("apk file read start. ---->" + sAppId);
 
