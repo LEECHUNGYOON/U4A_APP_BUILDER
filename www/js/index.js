@@ -1613,7 +1613,7 @@
             console.log(data);
 
             console.log("cordova platform [---" + sAppId + "---] add Finish!!!");
-
+            
             oAPP.onCopyBuildExtraFile(req, res, oFormData, sRandomKey).then(() => {
 
                 // plugin 설치            
@@ -1630,12 +1630,19 @@
 
         return new Promise(function(resolve, reject) {
 
+            resolve();
+
+
+            return;
+
+
+
             var oFields = oFormData.FIELDS,
                 sAppId = oFields.APPID,
                 sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId + "\\platforms\\android\\app",
                 isDbg = oFields.ISDBG;
 
-            var sOrgBuildExtraFilePath = PATH.join(ELECTRONAPP.getAppPath(), "extra", "build-extras.gradle");
+            var sOrgBuildExtraFilePath = ELECTRONAPP.getAppPath() + "\\extra\\build-extras.gradle";
 
             // debug 모드일 경우 build-extra.gradle 파일 복사를 하지 않는다.
             if (isDbg == "X") {
