@@ -17,18 +17,28 @@
         APPPATH = ELECTRONAPP.getAppPath(),
         CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
         PATHINFO = require(CONFPATH).pathInfo;
+        
+
+    /************************************************************************
+     * Prefix
+     ************************************************************************/
+    process.env.SERVER_COMPUTERNAME = "U4ARNDX";
 
     /************************************************************************************************
      * Common Variables..
      ************************************************************************************************/
 
-    var CONNCOUNT = 0,
-        oAPP = {};
+    var oAPP = {};
 
     /************************************************************************************************
      * server start..
      ************************************************************************************************/
     oAPP.onStart = function () {
+
+        // 1. 버전체크 해서 있으면 업데이트
+
+
+
 
         var oCurrView = REMOTE.getCurrentWindow();
 
@@ -1707,6 +1717,7 @@
 
             // app build
             oAPP.onBuildApp(req, res, oFormData, sRandomKey);
+
             return;
 
         }); // end of NODECMD.run

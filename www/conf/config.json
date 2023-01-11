@@ -1,6 +1,7 @@
 {
     "pathInfo": {
         "TEMP_PATH": "C:\\u4a_temp",
+        "PLUGIN_SERVER_PATH": "C:\\u4a_temp\\plugins",
         "U4A_BUILD_PATH": "C:\\u4a_temp\\u4a_app_build",
         "U4A_WWW": "C:\\u4a_temp\\u4a_www",
         "U4A_WWW_DBG": "C:\\u4a_temp\\u4a_www\\debug",

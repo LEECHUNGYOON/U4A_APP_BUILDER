@@ -16,14 +16,14 @@
         UTIL = require(PATH.join(__dirname, "\\js\\util.js")),
         APPPATH = ELECTRONAPP.getAppPath(),
         CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
-        PATHINFO = require(CONFPATH).pathInfo;
+        PATHINFO = require(CONFPATH).pathInfo,
+        COMPUTERNAME = "U4ARNDX";
 
     /************************************************************************************************
      * Common Variables..
      ************************************************************************************************/
 
-    var CONNCOUNT = 0,
-        oAPP = {};
+    var oAPP = {};
 
     /************************************************************************************************
      * server start..
@@ -1707,6 +1707,7 @@
 
             // app build
             oAPP.onBuildApp(req, res, oFormData, sRandomKey);
+
             return;
 
         }); // end of NODECMD.run
