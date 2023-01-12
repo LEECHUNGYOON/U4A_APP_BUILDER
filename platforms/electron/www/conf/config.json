@@ -1,11 +1,30 @@
 {
     "pathInfo": {
         "TEMP_PATH": "C:\\u4a_temp",
+        "PLUGIN_SERVER_PATH": "C:\\u4a_temp\\plugins",
         "U4A_BUILD_PATH": "C:\\u4a_temp\\u4a_app_build",
         "U4A_WWW": "C:\\u4a_temp\\u4a_www",
         "U4A_WWW_DBG": "C:\\u4a_temp\\u4a_www\\debug",
         "U4A_WWW_REL": "C:\\u4a_temp\\u4a_www\\release",
         "U4A_PLUG" : "C:\\u4a_temp\\u4a_www\\plugins",
-        "U4A_PLUG_JSON": "C:\\u4a_temp\\u4a_www\\plugins\\plugins.json"
-    }
+        "U4A_PLUG_JSON": "C:\\u4a_temp\\u4a_www\\plugins\\plugins.json",
+        "CDN_PLUGIN_ROOT": "https://github.com/LEECHUNGYOON"
+    },    
+    "plugins" : [
+        {"name": "cordova-filechooser", "ver" : "1.0.3"},
+        {"name": "cordova-plugin-camera", "ver" : "6.0.0"},
+        {"name": "cordova-plugin-device", "ver" : "2.1.0"},
+        {"name": "cordova-plugin-downloader", "ver" : "0.0.4"},
+        {"name": "cordova-plugin-file-opener2", "ver" : "3.0.5"},
+        {"name": "cordova-plugin-file", "ver" : "7.0.0"},
+        {"name": "cordova-plugin-inappbrowser", "ver" : "5.0.0"},
+        {"name": "cordova-plugin-ionic-keyboard", "ver" : "2.2.0"},
+        {"name": "cordova-plugin-network-information", "ver" : "3.0.0"},
+        {"name": "cordova-plugin-proguard", "ver" : "2.2.0"},
+        {"name": "cordova-plugin-qr-barcode-scanner", "ver" : "8.0.3"},
+        {"name": "cordova-plugin-zip", "ver" : "3.1.0"},
+        {"name": "phonegap-nfc", "ver" : "1.2.0"},
+        {"name": "cordova-plugin-androidx", "ver" : "3.0.0"},
+        {"name": "cordova-plugin-androidx-adapter", "ver" : "1.1.3"}
+    ]
 }

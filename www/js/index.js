@@ -17,7 +17,6 @@
         APPPATH = ELECTRONAPP.getAppPath(),
         CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
         PATHINFO = require(CONFPATH).pathInfo;
-        
 
     /************************************************************************
      * Prefix
@@ -29,6 +28,22 @@
      ************************************************************************************************/
 
     var oAPP = {};
+
+
+    /************************************************************************************************
+     * INITIALIZATION
+     ************************************************************************************************/
+
+    let SERVER_IP = IP_ADDR.address(),
+        SERVER_PORT = "9992";
+
+    // 실행된 컴퓨터가 서버 컴퓨터 일 경우
+    if (process.env.COMPUTERNAME == process.env.SERVER_COMPUTERNAME) {        
+        SERVER_PORT = "9404";
+    }
+
+
+
 
     /************************************************************************************************
      * server start..
@@ -52,7 +67,6 @@
                 message: oCheck.MSG,
                 type: "warning",
                 buttons: ["재실행", "서버닫기"]
-
             });
 
             // 재실행 버튼 선택시
@@ -71,8 +85,8 @@
 
         const HTTP = require('http');
 
-        var SERVER_IP = IP_ADDR.address(),
-            SERVER_PORT = "9992";
+        // var SERVER_IP = IP_ADDR.address(),
+        //     SERVER_PORT = "9992";
 
         var server = HTTP.createServer();
         server.timeout = 1000000;

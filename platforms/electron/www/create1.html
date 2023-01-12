@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>Hello World</title>
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <style>
+        *,
+        *:before,
+        *:after {
+            box-sizing: border-box;
+        }
+
+        * {
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+            -webkit-touch-callout: none;
+            -webkit-text-size-adjust: none;
+            -ms-text-size-adjust: none;
+        }
+
+        html {
+            height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            height: 100%;
+            width: 100%;
+            margin: 0;
+            font-family: "72", "72full", Arial, Helvetica, sans-serif;
+            -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+        }
+
+        .u4aCdvMAppContainer {
+            width: 600px;
+            margin: 30px auto 0;
+            display: block;
+            background: #FFF;
+            padding: 10px 50px 50px;
+        }
+
+        .form-example {
+            display: table;
+        }
+
+        .form-example {
+            display: table-row;
+        }
+
+        .form-example>label,
+        .form-example>input {
+            display: table-cell;
+            margin-bottom: 10px;
+        }
+
+        .form-example label {
+            padding-right: 10px;
+        }
+
+        /* BusyIndicator */
+        #u4aWsBusyIndicator {
+            right: 0;
+        }
+
+        .u4aWsBusyIndicator {
+            z-index: 2000000;
+        }
+
+        .sapUiUserSelectable {
+            -webkit-touch-callout: text;
+            -webkit-user-select: text;
+            -khtml-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
+
+        .sapUiBusy {
+            display: block;
+            width: 48px;
+            height: 48px;
+            outline: none;
+            cursor: wait;
+            top: 0 !important;
+        }
+
+        #u4aWsBusyIndicator>.sapUiLocalBusyIndicatorFade {
+            cursor: wait;
+        }
+
+        .sapUiLocalBusyIndicatorSizeBig {
+            font-size: 2rem;
+            background-color: transparent;
+        }
+
+        .sapUiLocalBusyIndicatorFade {
+            opacity: 1;
+        }
+
+        .sapUiLocalBusyIndicator {
+            opacity: 0;
+            transition: opacity .3s ease-in;
+            outline: none;
+        }
+
+        .sapUiLocalBusyIndicator {
+            background-color: rgba(247, 247, 247, 0.72);
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation {
+            position: absolute;
+            width: 3em;
+            top: 50%;
+            left: 50%;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div {
+            animation: sapUiBusyAnimationStandard 1.8s infinite ease-in-out;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div,
+        .sapUiLocalBusyIndicatorAnimation>div::before,
+        .sapUiLocalBusyIndicatorAnimation>div::after {
+            animation-fill-mode: both;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div {
+            width: 1em;
+            height: 1em;
+            border-radius: 100%;
+            display: block;
+            float: left;
+            margin: 0px;
+            position: relative;
+            top: -0.5em;
+            left: -1.5em;
+            text-indent: 1px;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div {
+            animation: sapUiBusyAnimationStandard 1.8s infinite ease-in-out;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div::before {
+            background: #0854a0;
+            animation-duration: 0ms;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div::before {
+            animation: sapUiBusyAnimationStandardBackground 1.8s infinite ease-in-out;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div::before {
+            background: #0a6ed1;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div::before,
+        .sapUiLocalBusyIndicatorAnimation>div::after {
+            content: "";
+            opacity: 1;
+            position: absolute;
+            z-index: -1;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border-radius: 100%;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div::after {
+            box-shadow: inset 0 0 0 0 #0854a0;
+        }
+
+        .sapUiLocalBusyIndicatorAnimStandard>div::after {
+            animation: sapUiBusyAnimationStandardShadow 1.8s infinite ease-in-out;
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div::after {
+            box-shadow: inset 0 0 2px 1px rgb(10 110 209 / 80%);
+        }
+
+        .sapUiLocalBusyIndicatorAnimation>div {
+            width: 1em;
+            height: 1em;
+            border-radius: 100%;
+            display: block;
+            float: left;
+            margin: 0px;
+            position: relative;
+            top: -0.5em;
+            left: -1.5em;
+            text-indent: 1px;
+        }
+
+        .sapUiLocalBusyIndicatorSizeBig {
+            font-size: 2rem;
+            background-color: transparent;
+        }
+
+        .sapUiLocalBusyIndicator {
+            opacity: 0;
+            transition: opacity .3s ease-in;
+            outline: none;
+        }
+
+        .sapUiLocalBusyIndicatorFade {
+            opacity: 1;
+        }
+
+        @keyframes sapUiBusyAnimationStandard {
+
+            0%,
+            80%,
+            100% {
+                transform: scale(.4);
+            }
+
+            40% {
+                transform: scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="u4aCdvMAppContainer">
+        <h2>
+            U4A Cordova Mobile App Builder
+        </h2>
+
+        <!-- Debug 여부 -->
+        <div class="form-example">
+            <label for="debugcb">Debug Mode? </label>
+            <input type="checkbox" name="debugcb" id="debugcb" value="debug">            
+        </div>
+
+        <!-- APP ID -->
+        <div class="form-example">
+            <label for="appid">App ID: </label>
+            <input type="text" id="appid" name="appid" maxlength="20" required />
+        </div>
+
+        <!-- APP DESC -->
+        <div class="form-example">
+            <label for="appdesc">App Desc: </label>
+            <input type="text" id="appdesc" name="appdesc" />
+        </div>
+
+        <!-- Shortcut Icon -->
+        <div class="form-example">
+            <label for="appicon">Shortcut Icon: </label>
+            <input type="file" id="shortcut" name="appicon" accept="image/png, image/jpeg, image/png"
+                onchange="oAPP.checkFilesSize(this);">
+        </div>
+
+        <!-- Intro Image -->
+        <div class="form-example">
+            <label for="intro">Intro Image: </label>
+            <input type="file" id="intro" name="intro" accept="image/png, image/jpeg, image/png"
+                onchange="oAPP.checkFilesSize(this);">
+        </div>
+
+        <!-- Protocol -->
+        <div class="form-example">
+            <label for="proto">Protocol: </label>
+            <input type="text" id="proto" name="proto" />
+        </div>
+
+        <!-- Host -->
+        <div class="form-example">
+            <label for="host">Host: </label>
+            <input type="text" id="host" name="host" />
+        </div>
+
+        <!-- Port -->
+        <div class="form-example">
+            <label for="port">Port: </label>
+            <input type="text" id="port" name="port" />
+        </div>
+
+        <!-- Path(U4A) -->
+        <div class="form-example">
+            <label for="path">Path(U4A): </label>
+            <input type="text" id="path" name="path" />
+        </div>
+
+        <!-- Parameters -->
+        <div class="form-example">
+            <label for="parameters">Parameters: </label>
+            <input type="text" id="parameters" name="parameters" />
+        </div>
+
+        <!-- create Button -->
+        <div class="form-example">
+            <button onclick="oAPP.onCreateApp();"> Build! </button>
+        </div>
+    </div>
+
+    <!-- Busy Indicator Start -->
+    <div id="u4aWsBusyIndicator" data-sap-ui-popup="id-1622786200065-234" class="u4aWsBusyIndicator sapUiUserSelectable"
+        style="position: absolute; visibility: hidden; display: block; top: 0px; height: 100%; width: 100%; left: 0px;">
+        <div class="sapUiBusy" tabindex="0" role="progressbar" alt="" title="Please wait"></div>
+        <div class="sapUiLocalBusyIndicator sapUiLocalBusyIndicatorSizeBig sapUiLocalBusyIndicatorFade"
+            role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuetext="Busy" alt="" tabindex="0"
+            title="Please wait">
+            <div class="sapUiLocalBusyIndicatorAnimation sapUiLocalBusyIndicatorAnimStandard">
+                <div></div>
+                <div></div>
+                <div></div>
+            </div>
+        </div>
+    </div>
+    <!-- Busy Indicator End -->
+
+    <script>
+        (function () {
+            "use strict";
+
+            var oAPP = {};
+
+            var sUrl = "/create";
+
+            oAPP.onCreateApp = function () {
+
+                event.preventDefault();
+
+                oAPP.setBusy('X');
+
+                console.log("build button click!!");
+
+                var sCreatePath = sUrl,
+                    oDebugcb = document.getElementById("debugcb"),
+                    oAppid = document.getElementById("appid"),
+                    oAppdesc = document.getElementById("appdesc"),
+                    oShortcut = document.getElementById("shortcut"),
+                    oIntro = document.getElementById("intro"),
+                    oProto = document.getElementById("proto"),
+                    oHost = document.getElementById("host"),
+                    oPort = document.getElementById("port"),
+                    oPath = document.getElementById("path"),
+                    oParam = document.getElementById("parameters");
+
+                var oTargetData = {
+                    ISDBG: oDebugcb.checked,
+                    APPID: oAppid.value,
+                    APPDESC: oAppdesc.value,
+                    SHORTCUT: oShortcut.files[0],
+                    INTRO: oIntro.files[0],
+                    PROTO: oProto.value,
+                    HOST: oHost.value,
+                    PORT: oPort.value,
+                    PATH: oPath.value,
+                    PARAM: oParam.value
+                };
+
+                var oRet = oAPP.onCheckAppInfo(oTargetData);
+
+                if (oRet.CODE == "E") {
+
+                    alert(oRet.MSG);
+
+                    oAPP.setBusy('');
+
+                    return;
+                }
+
+                var oForm = new FormData();
+                oForm.append("ISDBG", oTargetData.ISDBG == true ? "X" : "");
+                oForm.append("APPID", oTargetData.APPID);
+                oForm.append("APPDESC", oTargetData.APPDESC);
+                oForm.append("PROTO", oTargetData.PROTO);
+                oForm.append("HOST", oTargetData.HOST);
+                oForm.append("PORT", oTargetData.PORT);
+                oForm.append("PATH", oTargetData.PATH);
+                oForm.append("PARAM", oTargetData.PARAM);
+                oForm.append("SHORTCUT", oTargetData.SHORTCUT || "");
+                oForm.append("INTRO", oTargetData.INTRO || "");
+
+                oAPP.sendAjax(sCreatePath, oForm);
+
+            };
+
+            // 앱 정보 입력 체크
+            oAPP.onCheckAppInfo = function (oTargetData) {
+
+                /***********************************************************************************
+                 *  APP ID 체크
+                 ***********************************************************************************/
+                var oRetMsg = oAPP.checkValidAppId(oTargetData.APPID);
+                if (oRetMsg.CODE == "E") {
+                    return oRetMsg;
+                }              
+
+                /***********************************************************************************
+                 *  Protocol 체크
+                 ***********************************************************************************/
+                var oRetMsg = oAPP.checkValidProtocol(oTargetData.PROTO);
+                if (oRetMsg.CODE == "E") {
+                    return oRetMsg;
+                }
+
+                /***********************************************************************************
+                 *  Host 체크
+                 ***********************************************************************************/
+                var oRetMsg = oAPP.checkValidHost(oTargetData.HOST);
+                if (oRetMsg.CODE == "E") {
+                    return oRetMsg;
+                }
+
+                /***********************************************************************************
+                 *  Path 체크
+                 ***********************************************************************************/
+                var oRetMsg = oAPP.checkValidPath(oTargetData.PATH);
+                if (oRetMsg.CODE == "E") {
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.onCheckAppInfo
+
+            oAPP.sendAjax = function (pUrl, pFormData) {
+
+                var xhr = new XMLHttpRequest();
+
+                xhr.onreadystatechange = function () {
+
+                    if (xhr.readyState == 4 && xhr.status == 200) {
+                     
+                        oAPP.setBusy('');
+
+                        var oResponse = xhr.response;
+
+                        if (oResponse instanceof Blob && oResponse.type.startsWith("text")) {
+
+                            var reader = new FileReader();
+                            reader.onload = function () {
+
+                                var sRetJson = reader.result,
+                                    oRet = JSON.parse(sRetJson);
+
+                                if(oRet.RETCD == "E"){
+                                    alert(oRet.MSGTXT);
+                                }
+
+                            }
+                            
+                            reader.readAsText(oResponse);
+
+                            return;
+                        }
+
+                        console.log(oResponse);
+
+                        var mime = oResponse.type; //response data type 
+                        var Lfnam = this.getResponseHeader('fname'); //response header value 
+
+                        const url = window.URL.createObjectURL(oResponse);
+                        const a = document.createElement("a");
+                        a.href = url;
+                        a.download = Lfnam;
+                        a.click();
+                        a.remove();
+                        window.URL.revokeObjectURL(url);
+
+                        alert("build success!!");
+
+                    }
+
+                };
+
+                xhr.responseType = "blob";
+                xhr.open("POST", pUrl, true);
+                xhr.send(pFormData);
+
+            }; // end of oAPP.sendAjax
+
+            oAPP.onload = function () {
+
+                var oAppid = document.getElementById("appid"),
+                    oAppdesc = document.getElementById("appdesc"),
+                    oShortcut = document.getElementById("shortcut"),
+                    oIntro = document.getElementById("intro"),
+                    oProto = document.getElementById("proto"),
+                    oHost = document.getElementById("host"),
+                    oPort = document.getElementById("port"),
+                    oPath = document.getElementById("path"),
+                    oParam = document.getElementById("parameters");
+
+                // test default
+                oAppdesc.value = "윤이앱테스트";
+                oProto.value = "http";
+                oHost.value = "49.236.106.96";
+                oPort.value = "8000";
+                oPath.value = "/zu4a/ytest_api05";
+                oParam.value = "sap-client=800&sap-language=EN";
+
+            }; // end of oAPP.onload
+
+            // APPID 입력 체크
+            oAPP.checkValidAppId = function (sAppId) {
+
+                var oRetMsg = {
+                    CODE: "E",
+                    TYPE: "APPID",
+                    MSG: ""
+                };
+
+                // 입력 여부 확인
+                if (!sAppId) {
+                    oRetMsg.MSG = "APPID를 입력하세요";
+                    return oRetMsg;
+                }
+
+                // 입력길이 확인
+                if (sAppId.length > 20) {
+                    oRetMsg.MSG = "APPID는 20자 이하만 입력 가능합니다";
+                    return oRetMsg;
+                }
+
+                // 특수문자 입력 체크
+                var bIsValid = oAPP.checkSpecial(sAppId);
+                if (bIsValid) {
+                    oRetMsg.MSG = "특수문자를 포함하면 안됩니다";
+                    return oRetMsg;
+                }
+
+                // 공백 있음
+                var bIsValid = oAPP.checkSpace(sAppId);
+                if (bIsValid) {
+                    oRetMsg.MSG = "공백을 포함하면 안됩니다";
+                    return oRetMsg;
+                }
+
+                // 영문+숫자
+                var bIsValid = oAPP.checkEngNum(sAppId);
+                if (!bIsValid) {
+                    oRetMsg.MSG = "영문 + 숫자만 입력가능합니다";
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.checkValidAppId
+
+            // App Description 입력 체크
+            oAPP.checkValidAppDesc = function (sAppDesc) {
+
+                var oRetMsg = {
+                    CODE: "E",
+                    TYPE: "APPDESC",
+                    MSG: ""
+                };
+
+                // 입력 여부 확인
+                if (!sAppDesc) {
+                    oRetMsg.MSG = "App Description을 입력하세요";
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.checkValidAppDesc
+
+            // Protocol 입력 체크
+            oAPP.checkValidProtocol = function (sProto) {
+
+                var oRetMsg = {
+                    CODE: "E",
+                    TYPE: "PROTO",
+                    MSG: ""
+                };
+
+                // 입력 여부 확인
+                if (!sProto) {
+                    oRetMsg.MSG = "Protocol을 입력하세요";
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.checkValidProtocol
+
+            // Host 입력 체크
+            oAPP.checkValidHost = function (sHost) {
+
+                var oRetMsg = {
+                    CODE: "E",
+                    TYPE: "HOST",
+                    MSG: ""
+                };
+
+                // 입력 여부 확인
+                if (!sHost) {
+                    oRetMsg.MSG = "HOST를 입력하세요";
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.checkValidHost
+
+            // Path 입력 체크
+            oAPP.checkValidPath = function (sPath) {
+
+                var oRetMsg = {
+                    CODE: "E",
+                    TYPE: "HOST",
+                    MSG: ""
+                };
+
+                // 입력 여부 확인
+                if (!sPath) {
+                    oRetMsg.MSG = "Path를 입력하세요";
+                    return oRetMsg;
+                }
+
+                oRetMsg.CODE = "S";
+
+                return oRetMsg;
+
+            }; // end of oAPP.checkValidPath
+
+            // 영문 + 숫자 입력 체크
+            oAPP.checkEngNum = function (str) {
+                var regExp = /^[A-Za-z]|^[A-Za-z]+[A-Za-z0-9]+/g;
+
+                if (regExp.test(str)) {
+                    return true;
+                } else {
+                    console.log("영문+숫자입력 걸림!!");
+                    return false;
+                }
+            };
+
+            // 특수문자 체크
+            oAPP.checkSpecial = function (str) {
+                var special_pattern = /[`~!@#$%^&*|\\\'\";:\/?]/gi;
+                if (special_pattern.test(str) == true) {
+                    console.log("특수문자 걸림!!");
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            // 공백(스페이스 바) 체크 
+            oAPP.checkSpace = function (str) {
+                if (str.search(/\s/) !== -1) {
+                    console.log("공백 있음!!");
+                    return true;
+                } else {
+                    return false;
+                }
+            };
+
+            // 첨부파일 이미지 사이즈 용량 제한
+            oAPP.checkFilesSize = function (input) {
+
+                if (input.files && input.files[0].size > (1 * 1024 * 1024)) {
+                    alert("파일 사이즈가 1mb 를 넘습니다.");
+                    input.value = null;
+                }
+
+            }; // end of oAPP.checkFilesSize
+
+            oAPP.setBusy = function (bIsBusy) {
+
+                var oBusy = document.getElementById("u4aWsBusyIndicator");
+
+                if (!oBusy) {
+                    return;
+                }
+
+                if (bIsBusy == 'X') {
+                    oBusy.style.visibility = "visible";
+                } else {
+                    oBusy.style.visibility = "hidden";
+                }
+
+            };
+
+            window.onload = oAPP.onload;
+
+            window.oAPP = oAPP;
+
+        })();
+    </script>
+    <!-- <script src="cordova.js"></script> -->
+</body>
+
+</html>
