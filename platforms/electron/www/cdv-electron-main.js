@@ -27,6 +27,12 @@ const {
     protocol,
     ipcMain
 } = require('electron');
+
+app.disableHardwareAcceleration();
+
+const remote = require('@electron/remote/main');
+remote.initialize();
+
 // Electron settings from .json file.
 const cdvElectronSettings = require('./cdv-electron-settings.json');
 const reservedScheme = require('./cdv-reserved-scheme.json');
@@ -72,8 +78,8 @@ function createWindow () {
     }
 
     const browserWindowOpts = Object.assign({}, cdvElectronSettings.browserWindow, { icon: appIcon });
-    browserWindowOpts.webPreferences.preload = path.join(app.getAppPath(), 'cdv-electron-preload.js');
-    browserWindowOpts.webPreferences.contextIsolation = true;
+    // browserWindowOpts.webPreferences.preload = path.join(app.getAppPath(), 'cdv-electron-preload.js');
+    browserWindowOpts.webPreferences.contextIsolation = false;
 
     mainWindow = new BrowserWindow(browserWindowOpts);
 
@@ -83,11 +89,13 @@ function createWindow () {
     const loadUrlOpts = Object.assign({}, cdvElectronSettings.browserWindowInstance.loadURL.options);
 
     mainWindow.loadURL(loadUrl, loadUrlOpts);
+    mainWindow.webContents.setFrameRate(10);
+    remote.enable(mainWindow.webContents);
 
-    // Open the DevTools.
-    if (cdvElectronSettings.browserWindow.webPreferences.devTools) {
-        mainWindow.webContents.openDevTools();
-    }
+    // // Open the DevTools.
+    // if (cdvElectronSettings.browserWindow.webPreferences.devTools) {
+    //     mainWindow.webContents.openDevTools();
+    // }
 
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {

@@ -1,5 +1,5 @@
 const
-    REMOTE = require('electron').remote,
+    REMOTE = require('@electron/remote'),
     PATH = require('path'),
     FS = require('fs-extra'),
     UGLIFYJS = require("uglify-js"),

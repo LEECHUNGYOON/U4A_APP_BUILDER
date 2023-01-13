@@ -5,7 +5,8 @@
      * Global Module..
      ************************************************************************************************/
     const
-        REMOTE = require('electron').remote,
+        // REMOTE = require('electron').remote,
+        REMOTE = require('@electron/remote'),
         DIALOG = REMOTE.require('electron').dialog,
         ELECTRONAPP = REMOTE.app,
         PATH = require('path'),
