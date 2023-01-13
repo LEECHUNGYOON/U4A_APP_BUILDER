@@ -1,60 +1,61 @@
-(function () {
+(async function () {
     "use strict";
 
     /************************************************************************************************
      * Global Module..
      ************************************************************************************************/
     const
-        // REMOTE = require('electron').remote,
         REMOTE = require('@electron/remote'),
         DIALOG = REMOTE.require('electron').dialog,
-        ELECTRONAPP = REMOTE.app,
+        APP = REMOTE.app,
+        WEBCON = REMOTE.getCurrentWebContents(),
         PATH = require('path'),
         IP_ADDR = require("ip"),
         SHELL = REMOTE.shell,
         FS = require('fs-extra'),
         ZIP = require("zip-lib"),
         UTIL = require(PATH.join(__dirname, "\\js\\util.js")),
-        APPPATH = ELECTRONAPP.getAppPath(),
+        APPPATH = APP.getAppPath(),
+        JS_ROOT_PATH = PATH.join(APPPATH, "js"),
         CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
-        PATHINFO = require(CONFPATH).pathInfo;
+        PATHINFO = require(CONFPATH).pathInfo,
+        AUTOUPDATE = require(PATH.join(JS_ROOT_PATH, "autoUpdate.js"));
 
-    /************************************************************************
+
+    /************************************************************************************************
      * Prefix
-     ************************************************************************/
+     ***********************************************************************************************/
     process.env.SERVER_COMPUTERNAME = "U4ARNDX";
 
     /************************************************************************************************
      * Common Variables..
      ************************************************************************************************/
-
     var oAPP = {};
-
 
     /************************************************************************************************
      * INITIALIZATION
      ************************************************************************************************/
-
     let SERVER_IP = IP_ADDR.address(),
         SERVER_PORT = "9992";
 
+
     // 실행된 컴퓨터가 서버 컴퓨터 일 경우
-    if (process.env.COMPUTERNAME == process.env.SERVER_COMPUTERNAME) {        
+    if (process.env.COMPUTERNAME == process.env.SERVER_COMPUTERNAME) {
         SERVER_PORT = "9404";
     }
 
-
-
+    /************************************************************************
+     * Auto Update Check
+     ************************************************************************/
+    // build 된 상태에서만 자동 업데이트 체크를 한다.
+    if (APP.isPackaged) {
+        await AUTOUPDATE.checkUpdate();
+    }
 
     /************************************************************************************************
      * server start..
      ************************************************************************************************/
     oAPP.onStart = function () {
-
-        // 1. 버전체크 해서 있으면 업데이트
-
-
-
 
         var oCurrView = REMOTE.getCurrentWindow();
 
@@ -123,9 +124,9 @@
                     oAPP.onPingCheck(req, res);
                     break;
 
-                    // 앱 생성시 필요한 정보들 구하기
-                    // 예) app version 정보,
-                    //     plugin 정보 등.
+                // 앱 생성시 필요한 정보들 구하기
+                // 예) app version 정보,
+                //     plugin 정보 등.
                 case "/getAppMetadata":
                     oAPP.getAppMetadata(req, res);
                     break;
@@ -1899,10 +1900,13 @@
 
     window.oAPP = oAPP;
 
-})();
+    // document.addEventListener('deviceready', onDeviceReady, false);
 
-document.addEventListener('deviceready', onDeviceReady, false);
+    // function onDeviceReady() {
+    //     oAPP.onStart();
+    // }
 
-function onDeviceReady() {
+})().then(() => {
     oAPP.onStart();
-}
+});
+

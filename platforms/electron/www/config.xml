@@ -2,10 +2,10 @@
 <widget id="com.U4A_APP_BUILDER.app" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:cdv="http://cordova.apache.org/ns/1.0">
     <name>U4A_APP_BUILDER</name>
     <description>
-        A sample Apache Cordova application that responds to the deviceready event.
+        A U4A IDE Platform RnD Team application that responds to the deviceready event.
     </description>
     <author email="dev@cordova.apache.org" href="http://cordova.io">
-        Apache Cordova Team
+        U4A IDE Platform RnD Team 
     </author>
     <content src="index.html" />
     <access origin="*" />
@@ -15,4 +15,6 @@
     <allow-intent href="sms:*" />
     <allow-intent href="mailto:*" />
     <allow-intent href="geo:*" />
+    <icon src="www/img/icon.png" target="installer" />
+    <preference name="AppendUserAgent" value="u4a_cordova_electron" />
 </widget>

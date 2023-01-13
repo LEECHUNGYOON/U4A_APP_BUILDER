@@ -30,6 +30,10 @@ const {
 
 app.disableHardwareAcceleration();
 
+app.commandLine.appendSwitch('disable-site-isolation-trials');
+app.commandLine.appendSwitch('ignore-certificate-errors'); // https 인증서 오류 무시
+app.commandLine.appendSwitch('autoplay-policy', 'no-user-gesture-required'); // 오디오 자동실행 오류 정책 회피
+
 const remote = require('@electron/remote/main');
 remote.initialize();
 
@@ -81,7 +85,9 @@ function createWindow () {
     // browserWindowOpts.webPreferences.preload = path.join(app.getAppPath(), 'cdv-electron-preload.js');
     browserWindowOpts.webPreferences.contextIsolation = false;
 
-    mainWindow = new BrowserWindow(browserWindowOpts);
+    mainWindow = new BrowserWindow(browserWindowOpts);    
+    mainWindow.webContents.setFrameRate(10);
+    remote.enable(mainWindow.webContents);
 
     // Load a local HTML file or a remote URL.
     const cdvUrl = cdvElectronSettings.browserWindowInstance.loadURL.url;
@@ -89,12 +95,10 @@ function createWindow () {
     const loadUrlOpts = Object.assign({}, cdvElectronSettings.browserWindowInstance.loadURL.options);
 
     mainWindow.loadURL(loadUrl, loadUrlOpts);
-    mainWindow.webContents.setFrameRate(10);
-    remote.enable(mainWindow.webContents);
 
     // // Open the DevTools.
     // if (cdvElectronSettings.browserWindow.webPreferences.devTools) {
-    //     mainWindow.webContents.openDevTools();
+        // mainWindow.webContents.openDevTools();
     // }
 
     // Emitted when the window is closed.

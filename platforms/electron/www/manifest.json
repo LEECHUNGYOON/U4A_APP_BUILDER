@@ -6,6 +6,13 @@
   "name": "U4A_APP_BUILDER",
   "short_name": "U4A_APP_BUILDER",
   "version": "com.U4A_APP_BUILDER.app",
-  "description": "A sample Apache Cordova application that responds to the deviceready event.",
-  "author": "Apache Cordova Team"
+  "description": "A U4A IDE Platform RnD Team application that responds to the deviceready event.",
+  "author": "U4A IDE Platform RnD Team",
+  "icons": [
+    {
+      "src": "www/img/icon.png",
+      "type": "image/png",
+      "sizes": "undefinedxundefined"
+    }
+  ]
 }
