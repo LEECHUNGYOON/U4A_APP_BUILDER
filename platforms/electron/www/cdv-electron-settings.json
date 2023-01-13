@@ -1,13 +1,17 @@
 {
   "browserWindow": {
-    "height": 800,
-    "width": 800,
-    "darkTheme": true,
+    "height": 600,
     "webPreferences": {
       "devTools": true,
-      "nodeIntegration": true,
-      "enableRemoteModule": true
+      "nodeIntegration": false
+    },
+    "width": 800
+  },
+  "browserWindowInstance": {
+    "loadURL": {
+      "url": "index.html"
     }
   },
-  "browserWindowInstance": {}
+  "scheme": "file",
+  "hostname": "localhost"
 }

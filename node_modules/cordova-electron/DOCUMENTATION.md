@@ -36,10 +36,16 @@ Electron is a framework that uses web technologies (HTML, CSS, and JS) to build 
     - [How to Disable the Window From Being Resizable](#how-to-disable-the-window-from-being-resizable)
     - [How to Make the Window Fullscreen](#how-to-make-the-window-fullscreen)
     - [How to Support Node.js and Electron APIs](#how-to-support-nodejs-and-electron-apis)
+    - [Customizing BrowserWindow Instance Method](#customizing-browserwindow-instance-method)
+      - [Load a local HTML file using relative path from the `{project_dir}/www` directory](#load-a-local-html-file-using-relative-path-from-the-project_dirwww-directory)
+      - [Load a local HTML using full path](#load-a-local-html-using-full-path)
+      - [Load a remote URL](#load-a-remote-url)
   - [Customizing the Electron's Main Process](#customizing-the-electrons-main-process)
   - [Bundling Node Modules](#bundling-node-modules)
     - [Cordova Package Handling](#cordova-package-handling)
   - [DevTools](#devtools)
+  - [Debugging the Application's Main Process](#debugging-the-applications-main-process)
+  - [Enable Developer Tool Exrtensions (Chrome Extensions)](#enable-developer-tool-exrtensions-chrome-extensions)
   - [Build Configurations](#build-configurations)
     - [Default Build Configurations](#default-build-configurations)
     - [Customizing Build Configurations](#customizing-build-configurations)
@@ -174,13 +180,14 @@ Working with a Cordova project, it is recommended to create an Electron settings
 </platform>
 ```
 
-To override or set any BrowserWindow options, in this file the options are added to the  `browserWindow` property.
+To override or set any BrowserWindow options or supply arguments to the loadURL method (BrowserWindow instance method), in this file the options are added to the `browserWindow` or `browserWindowInstance` property accordingly.
 
 **Example `res/electron/settings.json`:**
 
 ```json
 {
-    "browserWindow": { ... }
+    "browserWindow": { ... },
+    "browserWindowInstance": { ... }
 }
 ```
 
@@ -245,9 +252,77 @@ Set the `nodeIntegration` flag property to `true`.  By default, this property fl
 }
 ```
 
+### Customizing BrowserWindow Instance Method
+
+Objects created with `new BrowserWindow` have instance methods, one of such is `loadURL`.
+
+By default, `loadURL` loads a local HTML file which should be defined in `config.xml` under `content` tag.
+The `content` tag value can be a remote address (e.g. `http://`) or a path to a local HTML file using the `file://` protocol.
+
+For Cordova Electron only: It is possible to override this option from the Electron settings file which additionally provides more options.
+
+> Learn more about [loadURL - BrowserWindow Instance Method](https://electronjs.org/docs/api/browser-window#winloadurlurl-options).
+
+#### Load a local HTML file using relative path from the `{project_dir}/www` directory
+
+To override the local HTML file, place your HTML file anywhere in the `{project_dir}/www` directory and define the path in the Electron settings file.
+
+ **Example**
+```json
+  "browserWindowInstance": {
+    "loadURL": {
+      "url": "custom.html"
+    }
+  }
+```
+
+#### Load a local HTML using full path
+
+To override the local HTML file using a full path, define the location of the local HTML file in the Electron settings file.
+
+ **Example**
+```json
+  "browserWindowInstance": {
+    "loadURL": {
+      "url": "file://{full_path}/index.html"
+    }
+  }
+```
+
+
+
+#### Load a remote URL
+
+To load a remote address, define the `url` in the Electron settings file.
+
+ **Example**
+```json
+  "browserWindowInstance": {
+    "loadURL": {
+      "url": "https://cordova.apache.org"
+    }
+  }
+```
+
+It is also possible to supply additional parameters using the [optional] `options` argument.
+
+ **Example**
+```json
+  "browserWindowInstance": {
+    "loadURL": {
+      "url": "https://cordova.apache.org",
+      "options": {
+        "extraHeaders": "Content-Type: text/html"
+      }
+    }
+  }
+```
+
+> For more information refer to [Electron documentation](https://electronjs.org/docs/api/browser-window#winloadurlurl-options).
+
 ## Customizing the Electron's Main Process
 
-If it is necessary to customize the Electron's main process beyond the scope of the Electron's configuration settings, chances can be added directly to the `cdv-electron-main.js` file located in `{PROJECT_ROOT_DIR}/platform/electron/platform_www/`. This is the application's main process.
+If it is necessary to customize the Electron's main process beyond the scope of the Electron's configuration settings, changes can be added directly to the `cdv-electron-main.js` file located in `{PROJECT_ROOT_DIR}/platform/electron/platform_www/`. This is the application's main process.
 
 > &#10071; However, it is not recommended to modify this file as the upgrade process for `cordova-electron` is to remove the old platform before adding the new version.
 
@@ -283,6 +358,61 @@ Packages defined as a dependency will be bundled with the application and can in
 The `--release` and `--debug` flags control the visibility of the DevTools. DevTools are shown by default on **Debug Builds** (`without a flag` or with `--debug`). If you want to hide the DevTools pass in the `--release` flag when building or running the application.
 
 > Note: DevTools can be closed or opened manually with the debug build.
+
+## Debugging the Application's Main Process
+
+If you need to debug the application's main process, you can do so by enabling the inspector with the Election's `inspect` or `inspect-brk` flags.
+
+As these flags are provided by Electron, you will need to separate the Cordova flags from Electron flags with an additional `--` separator.
+
+For example:
+
+```shell
+cordova run electron --nobuild --debug -- --inspect-brk=5858
+```
+
+## Enable Developer Tool Exrtensions (Chrome Extensions)
+
+To enable a devtool extension, for a debug build, add the `devToolsExtension` collection to the Cordova Electron Settings file (`ElectronSettingsFilePath`).
+
+For example:
+
+```json
+{
+  "devToolsExtension": [
+    "VUEJS_DEVTOOLS"
+  ]
+}
+```
+
+Below is a list of pre-provided devtools that can be added.
+
+- `EMBER_INSPECTOR`
+- `REACT_DEVELOPER_TOOLS`
+- `BACKBONE_DEBUGGER`
+- `JQUERY_DEBUGGER`
+- `ANGULARJS_BATARANG`
+- `VUEJS_DEVTOOLS`
+- `REDUX_DEVTOOLS`
+- `REACT_PERF`
+- `CYCLEJS_DEVTOOL`
+- `APOLLO_DEVELOPER_TOOLS`
+- `MOBX_DEVTOOLS`
+
+If there are any devtools or extensions you wish to use that are avaiable in the Chrome App Store, you can add them by provided the extension's app ID.
+
+**Note:** The developer tools & extensions are not installed on a release build.
+
+**Example:**
+
+```json
+{
+    "browserWindow": {
+        "width": 1024,
+        "height": 768
+    }
+}
+```
 
 ## Build Configurations
 
