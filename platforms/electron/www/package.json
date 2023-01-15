@@ -2,7 +2,7 @@
   "main": "cdv-electron-main.js",
   "name": "com.U4A_APP_BUILDER.app",
   "displayName": "U4A_APP_BUILDER",
-  "version": "0.0.5",
+  "version": "0.0.7",
   "description": "A U4A IDE Platform RnD Team application that responds to the deviceready event.",
   "homepage": "http://cordova.io",
   "license": "Apache-2.0",

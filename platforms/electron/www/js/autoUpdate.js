@@ -53,7 +53,7 @@ function fnShowUpdatePopup(fnCallback) {
     // Emitted when the window is closed.
     oBrowserWindow.on('closed', () => {
 
-        CURRWIN.show();
+        // CURRWIN.show();
 
         oBrowserWindow = null;
 

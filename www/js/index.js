@@ -52,9 +52,9 @@
     // build 된 상태에서만 자동 업데이트 체크를 한다.
     if (APP.isPackaged) {
         await AUTOUPDATE.checkUpdate();
+    } else {
+        CURRWIN.show();
     }
-
-    CURRWIN.show();
 
     /************************************************************************************************
      * server start..
@@ -170,6 +170,15 @@
 
                 case "/update": // 업데이트
                     oAPP.onUpdateWWW(req, res);
+                    break;
+
+                case "/restart": // 앱 재실행
+
+                    res.end(JSON.stringify({
+                        RETCD: "OK",
+                    }));
+
+                    oAPP.onAppRestart();
                     break;
 
                 default:
@@ -1979,6 +1988,16 @@
         };
 
     }; // end of oAPP.onAttachBeforeUnloadEvent
+
+    /************************************************************************
+     * 앱 재부팅
+     ************************************************************************/
+    oAPP.onAppRestart = () => {
+
+        APP.relaunch();
+        APP.exit();
+
+    }; // end of oAPP.onAppRestart
 
     window.oAPP = oAPP;
 

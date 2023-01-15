@@ -91,7 +91,7 @@ function createWindow() {
         icon: appIcon
     });
     // browserWindowOpts.webPreferences.preload = path.join(app.getAppPath(), 'cdv-electron-preload.js');
-    browserWindowOpts.webPreferences.contextIsolation = false;
+    browserWindowOpts.webPreferences.contextIsolation = false;    
     browserWindowOpts.show = false;
 
     mainWindow = new BrowserWindow(browserWindowOpts);
@@ -103,7 +103,7 @@ function createWindow() {
     const loadUrl = cdvUrl.includes('://') ? cdvUrl : `${basePath}/${cdvUrl}`;
     const loadUrlOpts = Object.assign({}, cdvElectronSettings.browserWindowInstance.loadURL.options);
 
-    mainWindow.loadURL(loadUrl, loadUrlOpts);
+    mainWindow.loadURL(loadUrl, loadUrlOpts);    
 
     // // Open the DevTools.
     // if (cdvElectronSettings.browserWindow.webPreferences.devTools) {
