@@ -1,4 +1,4 @@
-(async function () {
+(async function() {
     "use strict";
 
     /************************************************************************************************
@@ -8,6 +8,7 @@
         REMOTE = require('@electron/remote'),
         DIALOG = REMOTE.require('electron').dialog,
         APP = REMOTE.app,
+        CURRWIN = REMOTE.getCurrentWindow(),
         WEBCON = REMOTE.getCurrentWebContents(),
         PATH = require('path'),
         IP_ADDR = require("ip"),
@@ -19,8 +20,9 @@
         JS_ROOT_PATH = PATH.join(APPPATH, "js"),
         CONFPATH = PATH.join(APPPATH, "conf") + "\\config.json",
         PATHINFO = require(CONFPATH).pathInfo,
-        AUTOUPDATE = require(PATH.join(JS_ROOT_PATH, "autoUpdate.js"));
-
+        AUTOUPDATE = require(PATH.join(JS_ROOT_PATH, "autoUpdate.js")),
+        TRAY = REMOTE.Tray,
+        TRAYMENU = REMOTE.Menu;
 
     /************************************************************************************************
      * Prefix
@@ -52,10 +54,12 @@
         await AUTOUPDATE.checkUpdate();
     }
 
+    CURRWIN.show();
+
     /************************************************************************************************
      * server start..
      ************************************************************************************************/
-    oAPP.onStart = function () {
+    oAPP.onStart = function() {
 
         var oCurrView = REMOTE.getCurrentWindow();
 
@@ -97,12 +101,25 @@
             oAPP.writeMsg('request timed out');
         });
 
-        server.listen(SERVER_PORT, SERVER_IP, function () {
+        server.listen(SERVER_PORT, SERVER_IP, function() {
+
             oAPP.writeMsg('----------- 서버 시작 ----------- : ' + SERVER_IP + ":" + SERVER_PORT);
+
+            // 트레이 아이콘 생성
+            oAPP.createTrayIcon();
+
+            // 브라우저 닫기 이벤트 핸들링 
+            oAPP.onAttachBeforeUnloadEvent();
+
+            // 실행된 컴퓨터가 서버 컴퓨터 일 경우
+            if (process.env.COMPUTERNAME == process.env.SERVER_COMPUTERNAME) {
+                CURRWIN.hide();
+            }
+
         });
 
         //connection 서버에 접속한자가 누군지 안다.
-        server.on('connection', function (socket) { //클라이언트 정보를 socket이 갖고있다.
+        server.on('connection', function(socket) { //클라이언트 정보를 socket이 갖고있다.
 
             oAPP.writeMsg('클라이언트가 접속',
                 socket.remoteAddress + ',' +
@@ -113,20 +130,20 @@
 
         });
 
-        server.on('error', function (e) {
+        server.on('error', function(e) {
             oAPP.writeMsg(e);
         });
 
-        server.on('request', function (req, res) {
+        server.on('request', function(req, res) {
 
             switch (req.url) {
                 case "/ping": // 서버 연결 상태 확인
                     oAPP.onPingCheck(req, res);
                     break;
 
-                // 앱 생성시 필요한 정보들 구하기
-                // 예) app version 정보,
-                //     plugin 정보 등.
+                    // 앱 생성시 필요한 정보들 구하기
+                    // 예) app version 정보,
+                    //     plugin 정보 등.
                 case "/getAppMetadata":
                     oAPP.getAppMetadata(req, res);
                     break;
@@ -163,10 +180,12 @@
 
         });
 
-    }; // end of oAPP.onStart
+    }; // end of oAPP.onStart    
 
-    // 플러그인 목록 업데이트 하기
-    oAPP.setUpdatePluginList = function (req, res) {
+    /************************************************************************
+     * 플러그인 목록 업데이트 하기  
+     ************************************************************************/
+    oAPP.setUpdatePluginList = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -239,7 +258,7 @@
 
     }; // end of oAPP.setUpdatePluginList
 
-    oAPP._setUpdatePluginList = function (req, res, oFormData) {
+    oAPP._setUpdatePluginList = function(req, res, oFormData) {
 
         var oFields = oFormData["FIELDS"];
 
@@ -302,10 +321,12 @@
 
     }; // end of oAPP._setUpdatePluginList
 
-    // 앱 생성시 필요한 정보들 구하기
-    // 예) app version 정보,
-    //     plugin 정보 등.
-    oAPP.getAppMetadata = function (req, res) {
+    /************************************************************************
+     * 앱 생성시 필요한 정보들 구하기 
+     *  예) app version 정보,
+     * plugin 정보 등.
+     ************************************************************************/
+    oAPP.getAppMetadata = function(req, res) {
 
         // 버전 정보 구하기.
         var oResult = oAPP.getVersionList();
@@ -347,7 +368,7 @@
     }; // end of oAPP.getAppMetadata
 
     // update
-    oAPP.onUpdateWWW = function (req, res) {
+    oAPP.onUpdateWWW = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -419,7 +440,7 @@
 
     }; // end of oAPP.onUpdateWWW
 
-    oAPP._onUpdateWWW = function (req, res, oFormData) {
+    oAPP._onUpdateWWW = function(req, res, oFormData) {
 
         var oFields = oFormData["FIELDS"],
             oFiles = oFormData["FILES"];
@@ -484,7 +505,7 @@
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sVer;
 
                 // 압축 풀기
-                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
+                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function() {
 
                     // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
                     var sDbgPath = PATHINFO.U4A_WWW_DBG + "\\" + sVer,
@@ -499,7 +520,7 @@
 
                     FS.copy(sExtractFolderPath, sRelPath, {
                         overwrite: true
-                    }).then(function () {
+                    }).then(function() {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
@@ -518,7 +539,7 @@
 
                         res.end(JSON.stringify(oRetCod));
 
-                    }).catch(function (err) {
+                    }).catch(function(err) {
 
                         res.end(JSON.stringify({
                             "RETCD": "E",
@@ -536,14 +557,14 @@
     }; // end of oAPP._onUpdateWWW
 
     // 압축 풀기
-    oAPP.onExtractZipFile = function (req, res, sSource, sTarget, fnSuccess) {
+    oAPP.onExtractZipFile = function(req, res, sSource, sTarget, fnSuccess) {
 
         // 압축을 푼다.
-        ZIP.extract(sSource, sTarget).then(function () {
+        ZIP.extract(sSource, sTarget).then(function() {
 
             fnSuccess();
 
-        }).catch(function (err) {
+        }).catch(function(err) {
 
             res.end(JSON.stringify({
                 "RETCD": "E",
@@ -555,7 +576,7 @@
     }; // end of oAPP.onExtractZipFile
 
     // 신규버전 생성
-    oAPP.addNewVersion = function (req, res) {
+    oAPP.addNewVersion = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -630,7 +651,7 @@
     }; // end of oAPP.addNewVersion
 
     // 신규버전 생성
-    oAPP._addNewVersion = function (res, req, oFormData) {
+    oAPP._addNewVersion = function(res, req, oFormData) {
 
         // 마지막 버전을 구한다.
         var sLastVer = oAPP.getLastVersion();
@@ -687,7 +708,7 @@
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sNewVer;
 
                 // 압축을 푼다.
-                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
+                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function() {
 
                     // 신규 추가 버전 파일을 debug 폴더에 복사한다.
                     var sDebugPath = PATHINFO.U4A_WWW_DBG + "\\" + sNewVer;
@@ -695,7 +716,7 @@
 
                     // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
                     var sTargetPath = PATHINFO.U4A_WWW_REL + "\\" + sNewVer;
-                    FS.copy(sExtractFolderPath, sTargetPath).then(function () {
+                    FS.copy(sExtractFolderPath, sTargetPath).then(function() {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
@@ -717,7 +738,7 @@
 
                         res.end(JSON.stringify(oRetCod));
 
-                    }).catch(function (err) {
+                    }).catch(function(err) {
 
                         res.end(JSON.stringify({
                             "RETCD": "E",
@@ -734,7 +755,7 @@
 
     }; // end of oAPP._addNewVersion
 
-    oAPP.getLastVersion = function () {
+    oAPP.getLastVersion = function() {
 
         var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
@@ -748,7 +769,7 @@
     };
 
     // 버전 리스트 구하기
-    oAPP.getVersionList = function () {
+    oAPP.getVersionList = function() {
 
         var oRetCod = {
             RETCD: "",
@@ -772,7 +793,7 @@
     }; // end of oAPP.getVersionList
 
     // 서버 연결 상태 확인
-    oAPP.onPingCheck = function (req, res) {
+    oAPP.onPingCheck = function(req, res) {
 
         var oRetCod = {
             RETCD: "",
@@ -787,7 +808,7 @@
     }; // end of oAPP.onPingCheck
 
     // www 원본 파일의 마지막 버전의 파일을 보낸다.
-    oAPP.getWWWFile = function (req, res) {
+    oAPP.getWWWFile = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -861,7 +882,7 @@
     }; // end of oAPP.getWWWFile
 
     // WWW 파일을 구한다.
-    oAPP._getWWWFile = function (res, req, oFormData) {
+    oAPP._getWWWFile = function(res, req, oFormData) {
 
         var oFields = oFormData.FIELDS,
             sVer = oFields.VER,
@@ -884,7 +905,7 @@
             sTargetPath = PATHINFO.TEMP_PATH + "\\" + sFileName;
 
         // www 폴더를 압축한다.
-        zl.archiveFolder(sFolderPath, sTargetPath).then(function () {
+        zl.archiveFolder(sFolderPath, sTargetPath).then(function() {
 
             FS.readFile(sTargetPath, (err, data) => {
 
@@ -913,7 +934,7 @@
 
             });
 
-        }, function (err) {
+        }, function(err) {
 
             if (err) {
                 oAPP.writeMsg(err);
@@ -950,7 +971,7 @@
     //         FS.mkdirSync(sTmpOrgPath);
     //     }
 
-    //     var sAppPath = ELECTRONAPP.getAppPath(),
+    //     var sAppPath = APP.getAppPath(),
     //         sOrgPath = PATH.join(sAppPath, "origin");
 
     //     // 원본 폴더 읽기
@@ -988,7 +1009,7 @@
     /************************************************************************************************
      * 필수 폴더 존재 여부 확인
      ************************************************************************************************/
-    oAPP.onCheckRequireFolder = function () {
+    oAPP.onCheckRequireFolder = function() {
 
         var oRetCod = {
             RETCD: "",
@@ -1064,14 +1085,14 @@
     /************************************************************************************************
      * 앱 생성 페이지 
      ************************************************************************************************/
-    oAPP.onIndexHtml = function (req, res) {
+    oAPP.onIndexHtml = function(req, res) {
 
         const
             FS = require('fs-extra'),
-            sAppPath = ELECTRONAPP.getAppPath(),
+            sAppPath = APP.getAppPath(),
             sIndexHtmlUrl = PATH.join(sAppPath, "create.html");
 
-        FS.readFile(sIndexHtmlUrl, 'utf-8', function (err, data) {
+        FS.readFile(sIndexHtmlUrl, 'utf-8', function(err, data) {
 
             if (err) {
 
@@ -1091,14 +1112,14 @@
 
     }; // end of oAPP.onIndexHtml
 
-    oAPP.onErrorPage = function (req, res) {
+    oAPP.onErrorPage = function(req, res) {
 
         const
             FS = require('fs-extra'),
-            sAppPath = ELECTRONAPP.getAppPath(),
+            sAppPath = APP.getAppPath(),
             sIndexHtmlUrl = PATH.join(sAppPath, "error.html");
 
-        FS.readFile(sIndexHtmlUrl, 'utf-8', function (err, data) {
+        FS.readFile(sIndexHtmlUrl, 'utf-8', function(err, data) {
 
             if (err) {
 
@@ -1117,7 +1138,7 @@
         });
     };
 
-    oAPP.onCreateApp = function (req, res) {
+    oAPP.onCreateApp = function(req, res) {
 
         if (req.method != "POST") {
 
@@ -1202,7 +1223,7 @@
             }
 
             // Random Key 구하기
-            UTIL.getRandomKey(function (sRandomKey) {
+            UTIL.getRandomKey(function(sRandomKey) {
                 oAPP._onCreateApp(req, res, oFormData, sRandomKey);
             });
 
@@ -1211,7 +1232,7 @@
     }; // end of oAPP.onCreateApp
 
     // 앱 정보 입력 체크
-    oAPP.onCheckAppInfo = function (oTargetData) {
+    oAPP.onCheckAppInfo = function(oTargetData) {
 
         /***********************************************************************************
          *  APP ID 체크
@@ -1243,7 +1264,7 @@
 
     }; // end of oAPP.onCheckAppInfo
 
-    oAPP._onCreateApp = function (req, res, oFormData, sRandomKey) {
+    oAPP._onCreateApp = function(req, res, oFormData, sRandomKey) {
 
         var NODECMD = require("node-cmd"),
             oFields = oFormData.FIELDS,
@@ -1258,7 +1279,7 @@
         oAPP.writeMsg("cordova project [---" + sAppId + "---] create Start!!!");
 
         // NODECMD
-        NODECMD.run(sCmd, function (err, data, stderr) {
+        NODECMD.run(sCmd, function(err, data, stderr) {
 
             if (err) {
                 console.error(err);
@@ -1283,7 +1304,7 @@
     }; // end of oAPP._onCreateApp
 
     // 최신버전의 파일 원본을 방금 생성한 폴더에 Overrite 한다.
-    oAPP.onCopyOrgToCrateApp = function (req, res, oFormData, sRandomKey) {
+    oAPP.onCopyOrgToCrateApp = function(req, res, oFormData, sRandomKey) {
 
         const FS = require('fs-extra');
 
@@ -1330,14 +1351,14 @@
                 sSourcePath = sWWWFolderPath + "\\" + sVerPath, // 복사 대상 폴더 위치
                 sTargetPath = sFolderPath + "\\" + sRandomKey + "\\" + sAppId; // 붙여넣을 폴더 위치
 
-            FS.copy(sSourcePath, sTargetPath).then(function () {
+            FS.copy(sSourcePath, sTargetPath).then(function() {
 
                 oAPP.writeMsg('file copy success!! -->' + sAppId);
 
                 // index.js의 각종 파라미터들을 Replace 한다.
                 oAPP.onReplaceParamToIndexJs(req, res, oFormData, sRandomKey);
 
-            }).catch(function (err) {
+            }).catch(function(err) {
 
                 console.error(err);
 
@@ -1353,7 +1374,7 @@
     }; // end of oAPP.onCopyOrgToCrateApp
 
     // index.js의 각종 파라미터들을 Replace 한다.
-    oAPP.onReplaceParamToIndexJs = function (req, res, oFormData, sRandomKey) {
+    oAPP.onReplaceParamToIndexJs = function(req, res, oFormData, sRandomKey) {
 
         const FS = require('fs-extra');
 
@@ -1401,7 +1422,7 @@
                     return;
                 }
 
-                FS.writeFile(sIndexJsPath, sIndexJsTxt, function (err) {
+                FS.writeFile(sIndexJsPath, sIndexJsTxt, function(err) {
 
                     if (err) {
                         console.error(err);
@@ -1426,7 +1447,7 @@
     }; // end of oAPP.onReplaceParamToIndexJs
 
     // config xml 수정
-    oAPP.onReplaceParamToConfigXml = function (req, res, oFormData, sRandomKey) {
+    oAPP.onReplaceParamToConfigXml = function(req, res, oFormData, sRandomKey) {
 
         const FS = require('fs-extra');
 
@@ -1466,7 +1487,7 @@
                     return;
                 }
 
-                FS.writeFile(sConfigXmlPath, sXmlTextData, function (err) {
+                FS.writeFile(sConfigXmlPath, sXmlTextData, function(err) {
 
                     if (err) {
                         console.error(err);
@@ -1497,7 +1518,7 @@
 
     }; // end of oAPP.onReplaceParamToConfigXml
 
-    oAPP.onShortCutImageChange = function (oFormData, sRandomKey) {
+    oAPP.onShortCutImageChange = function(oFormData, sRandomKey) {
 
         return new Promise((resolve, reject) => {
 
@@ -1526,14 +1547,14 @@
                 var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
                     sLogoImgPath = sBuildAppPath + "\\www\\img\\logo.png";
 
-                FS.unlink(sLogoImgPath, function (err) {
+                FS.unlink(sLogoImgPath, function(err) {
 
                     if (err) {
                         resolve('X');
                         return;
                     }
 
-                    FS.writeFile(sLogoImgPath, data, function (err) {
+                    FS.writeFile(sLogoImgPath, data, function(err) {
 
                         if (err) {
                             resolve('X');
@@ -1552,7 +1573,7 @@
 
     }; // end of oAPP.onShortCutImageChange
 
-    oAPP.onIntroImageChange = function (oFormData, sRandomKey) {
+    oAPP.onIntroImageChange = function(oFormData, sRandomKey) {
 
         return new Promise((resolve, reject) => {
 
@@ -1581,13 +1602,13 @@
                 var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
                     sLogoImgPath = sBuildAppPath + "\\www\\img\\intro.png";
 
-                FS.unlink(sLogoImgPath, function (err) {
+                FS.unlink(sLogoImgPath, function(err) {
                     if (err) {
                         resolve('X');
                         return;
                     }
 
-                    FS.writeFile(sLogoImgPath, data, function (err) {
+                    FS.writeFile(sLogoImgPath, data, function(err) {
 
                         if (err) {
                             resolve('X');
@@ -1608,7 +1629,7 @@
     }; // end of oAPP.onIntroImageChange
 
     // android platform 추가하기
-    oAPP.addPlatformAndroid = function (req, res, oFormData, sRandomKey) {
+    oAPP.addPlatformAndroid = function(req, res, oFormData, sRandomKey) {
 
         const NODECMD = require("node-cmd");
 
@@ -1623,7 +1644,7 @@
 
         oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Start!!!");
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+        NODECMD.run(sCmd, function(err, data, stderr) {
 
             if (err) {
                 console.error(err);
@@ -1652,9 +1673,9 @@
     }; // end of oAPP.addPlatformAndroid
 
     // APK 난독화 옵션이 있는 build-extra.gradle 파일을 복사해서 해당 옵션을 적용시키게 만든다.
-    oAPP.onCopyBuildExtraFile = function (req, res, oFormData, sRandomKey) {
+    oAPP.onCopyBuildExtraFile = function(req, res, oFormData, sRandomKey) {
 
-        return new Promise(function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
 
             var oFields = oFormData.FIELDS,
                 sAppId = oFields.APPID,
@@ -1663,7 +1684,7 @@
                 sCopyTargetPath = PATH.join(sFolderPath, sBuildExtraFileName),
                 isDbg = oFields.ISDBG;
 
-            var sOrgBuildExtraFileFolderPath = ELECTRONAPP.getAppPath() + "\\extra",
+            var sOrgBuildExtraFileFolderPath = APP.getAppPath() + "\\extra",
                 sOrgBuildExtraFilePath = PATH.join(sOrgBuildExtraFileFolderPath, sBuildExtraFileName);
 
             // debug 모드일 경우 build-extra.gradle 파일 복사를 하지 않는다.
@@ -1672,12 +1693,12 @@
                 return;
             }
 
-            FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function () {
+            FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function() {
 
                 oAPP.writeMsg('Build-extra.gradle 파일 복사 성공!!!! -->' + sAppId);
                 resolve();
 
-            }).catch(function (err) {
+            }).catch(function(err) {
 
                 res.end(JSON.stringify({
                     "RETCD": "E",
@@ -1691,7 +1712,7 @@
     }; // end of oAPP.onCopyBuildExtraFile
 
     // 플러그인 설치
-    oAPP.onInstallPlugins = function (req, res, oFormData, sRandomKey) {
+    oAPP.onInstallPlugins = function(req, res, oFormData, sRandomKey) {
 
         const NODECMD = require("node-cmd");
 
@@ -1716,7 +1737,7 @@
 
         oAPP.writeMsg("plugin Install Start. : ---->" + sAppId);
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+        NODECMD.run(sCmd, function(err, data, stderr) {
 
             if (err) {
                 console.error(err);
@@ -1741,7 +1762,7 @@
     }; // end of oAPP.onInstallPlugins
 
     // apk build
-    oAPP.onBuildApp = function (req, res, oFormData, sRandomKey) {
+    oAPP.onBuildApp = function(req, res, oFormData, sRandomKey) {
 
         const NODECMD = require("node-cmd");
 
@@ -1765,7 +1786,7 @@
 
         oAPP.writeMsg("android app build start. ---->" + sAppId);
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+        NODECMD.run(sCmd, function(err, data, stderr) {
 
             if (err) {
                 console.error(err);
@@ -1790,7 +1811,7 @@
     }; // end of oAPP.onBuildApp
 
     // Build한 Apk를 Return 한다.
-    oAPP.onRespBuildApp = function (req, res, oFormData, sRandomKey) {
+    oAPP.onRespBuildApp = function(req, res, oFormData, sRandomKey) {
 
         const FS = require('fs-extra');
 
@@ -1850,7 +1871,7 @@
     }; // end of oAPP.onRespBuildApp
 
     // 빌드한 폴더 삭제
-    oAPP.removeBuildFolder = function (req, res, oFormData, sRandomKey, fnSuccess) {
+    oAPP.removeBuildFolder = function(req, res, oFormData, sRandomKey, fnSuccess) {
 
         const FS = require('fs-extra');
 
@@ -1882,6 +1903,7 @@
 
     }; // end of oAPP.removeBuildFolder
 
+    // 앱 빌드 과정을 화면에 뿌린다.
     oAPP.writeMsg = (sMsg) => {
 
         let oMsgArea = document.getElementById("msgArea");
@@ -1898,6 +1920,66 @@
 
     }; // end of oAPP.writeMsg
 
+    /************************************************************************
+     * Tray Icon 생성
+     ************************************************************************/
+    oAPP.createTrayIcon = () => {
+
+        let sTrayIconPath = PATH.join(APPPATH, "img", "icon.png");
+
+        oAPP.oTray = new TRAY(sTrayIconPath);
+
+        let aMenu = [{
+            key: "exit",
+            label: "종료",
+            click: oAPP.TrayMenu01
+        }];
+
+        oAPP.oTrayMenu = TRAYMENU.buildFromTemplate(aMenu);
+        oAPP.oTray.setToolTip("U4A ANDROID BUILDER");
+        oAPP.oTray.setContextMenu(oAPP.oTrayMenu);
+
+        oAPP.oTray.on("double-click", () => {
+
+            let oCurrWin = REMOTE.getCurrentWindow(),
+                bIsVisible = oCurrWin.isVisible(),
+                bIsFocus = oCurrWin.isFocused();
+
+            if (!bIsVisible) {
+                oCurrWin.show();
+            }
+
+            if (!bIsFocus) {
+                oCurrWin.focus();
+            }
+
+        });
+
+    }; // end of oAPP.createTrayIcon
+
+    oAPP.TrayMenu01 = () => {
+
+        APP.exit();
+
+    };
+
+    /************************************************************************
+     * 창 닫을때 이벤트 
+     ************************************************************************/
+    oAPP.onAttachBeforeUnloadEvent = () => {
+
+        window.onbeforeunload = () => {
+
+            let oCurrWin = REMOTE.getCurrentWindow();
+
+            oCurrWin.hide();
+
+            return "";
+
+        };
+
+    }; // end of oAPP.onAttachBeforeUnloadEvent
+
     window.oAPP = oAPP;
 
     // document.addEventListener('deviceready', onDeviceReady, false);
@@ -1909,4 +1991,3 @@
 })().then(() => {
     oAPP.onStart();
 });
-

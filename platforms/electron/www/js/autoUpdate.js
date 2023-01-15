@@ -18,8 +18,9 @@ function fnShowUpdatePopup(fnCallback) {
     let loadUrl = path.join(apppath, "update.html"),
         appIcon = path.join(apppath, "/img/logo.png");
 
-    let browserWindowOpts = {        
+    let browserWindowOpts = {
         "icon": appIcon,
+        "show": false,
         "height": 150,
         "width": 400,
         "frame": false,
@@ -37,13 +38,13 @@ function fnShowUpdatePopup(fnCallback) {
         }
     };
 
-    var oBrowserWindow = new REMOTE.BrowserWindow(browserWindowOpts);  
+    var oBrowserWindow = new REMOTE.BrowserWindow(browserWindowOpts);
 
     oBrowserWindow.loadURL(loadUrl, browserWindowOpts);
 
     // oBrowserWindow.webContents.openDevTools();
 
-    oBrowserWindow.webContents.on('did-finish-load', function () {
+    oBrowserWindow.webContents.on('did-finish-load', function() {
 
         fnCallback(oBrowserWindow);
 
@@ -72,9 +73,13 @@ oAutoUpdate.checkUpdate = () => {
 
         fnShowUpdatePopup((oBrowserWindow) => {
 
+            let oWebContents = oBrowserWindow.webContents;
+
             autoUpdater.on('checking-for-update', () => {
 
-                oBrowserWindow.webContents.send('if-update-info', {
+                oBrowserWindow.show();
+
+                oWebContents.send('if-update-info', {
                     status: "업데이트 확인 중..."
                 });
 
@@ -84,9 +89,9 @@ oAutoUpdate.checkUpdate = () => {
 
             autoUpdater.on('update-available', (info) => {
 
-                oBrowserWindow.webContents.send('if-update-info', {
-                    status: "업데이트 확인 중..."
-                });              
+                oWebContents.send('if-update-info', {
+                    status: "업데이트가 가능합니다."
+                });
 
                 console.log("업데이트가 가능합니다.");
 
@@ -107,7 +112,7 @@ oAutoUpdate.checkUpdate = () => {
                 let sErrMsg = `[update Error] : ${err.toString()}`;
 
                 // Progressbar 팝업 쪽에 오류 메시지를 던진다.
-                oBrowserWindow.webContents.send('if-update-info', {
+                oWebContents.send('if-update-info', {
                     prc: "E",
                     status: sErrMsg
                 });
@@ -123,7 +128,7 @@ oAutoUpdate.checkUpdate = () => {
 
                 var iPer = parseFloat(progressObj.percent).toFixed(2);
 
-                oBrowserWindow.webContents.send('if-update-info', {
+                oWebContents.send('if-update-info', {
                     status: "Downloading...",
                     per: iPer
                 });
@@ -134,7 +139,7 @@ oAutoUpdate.checkUpdate = () => {
 
             autoUpdater.on('update-downloaded', (info) => {
 
-                oBrowserWindow.webContents.send('if-update-info', {
+                oWebContents.send('if-update-info', {
                     status: "업데이트가 완료되었습니다. 앱을 재시작 합니다."
                 });
 

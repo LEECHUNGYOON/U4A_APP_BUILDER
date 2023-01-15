@@ -19,7 +19,9 @@
 
 const fs = require('fs');
 const path = require('path');
-const { cordova } = require('./package.json');
+const {
+    cordova
+} = require('./package.json');
 // Module to control application life, browser window and tray.
 const {
     app,
@@ -41,9 +43,9 @@ remote.initialize();
 const cdvElectronSettings = require('./cdv-electron-settings.json');
 const reservedScheme = require('./cdv-reserved-scheme.json');
 
-const devTools = cdvElectronSettings.browserWindow.webPreferences.devTools
-    ? require('electron-devtools-installer')
-    : false;
+const devTools = cdvElectronSettings.browserWindow.webPreferences.devTools ?
+    require('electron-devtools-installer') :
+    false;
 
 const scheme = cdvElectronSettings.scheme;
 const hostname = cdvElectronSettings.hostname;
@@ -61,16 +63,20 @@ const basePath = (() => isFileProtocol ? `file://${__dirname}` : `${scheme}://${
 if (reservedScheme.includes(scheme)) throw new Error(`The scheme "${scheme}" can not be registered. Please use a non-reserved scheme.`);
 
 if (!isFileProtocol) {
-    protocol.registerSchemesAsPrivileged([
-        { scheme, privileges: { standard: true, secure: true } }
-    ]);
+    protocol.registerSchemesAsPrivileged([{
+        scheme,
+        privileges: {
+            standard: true,
+            secure: true
+        }
+    }]);
 }
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
 
-function createWindow () {
+function createWindow() {
     // Create the browser window.
     let appIcon;
     if (fs.existsSync(`${__dirname}/img/app.png`)) {
@@ -81,11 +87,14 @@ function createWindow () {
         appIcon = `${__dirname}/img/logo.png`;
     }
 
-    const browserWindowOpts = Object.assign({}, cdvElectronSettings.browserWindow, { icon: appIcon });
+    const browserWindowOpts = Object.assign({}, cdvElectronSettings.browserWindow, {
+        icon: appIcon
+    });
     // browserWindowOpts.webPreferences.preload = path.join(app.getAppPath(), 'cdv-electron-preload.js');
     browserWindowOpts.webPreferences.contextIsolation = false;
+    browserWindowOpts.show = false;
 
-    mainWindow = new BrowserWindow(browserWindowOpts);    
+    mainWindow = new BrowserWindow(browserWindowOpts);
     mainWindow.webContents.setFrameRate(10);
     remote.enable(mainWindow.webContents);
 
@@ -98,25 +107,51 @@ function createWindow () {
 
     // // Open the DevTools.
     // if (cdvElectronSettings.browserWindow.webPreferences.devTools) {
-        // mainWindow.webContents.openDevTools();
+    // mainWindow.webContents.openDevTools();
     // }
 
     // Emitted when the window is closed.
     mainWindow.on('closed', () => {
-    // Dereference the window object, usually you would store windows
-    // in an array if your app supports multi windows, this is the time
-    // when you should delete the corresponding element.
+        // Dereference the window object, usually you would store windows
+        // in an array if your app supports multi windows, this is the time
+        // when you should delete the corresponding element.
         mainWindow = null;
     });
 }
 
-function configureProtocol () {
+function configureProtocol() {
     protocol.registerFileProtocol(scheme, (request, cb) => {
         const url = request.url.substr(basePath.length + 1);
-        cb({ path: path.normalize(`${__dirname}/${url}`) });
+        cb({
+            path: path.normalize(`${__dirname}/${url}`)
+        });
     });
 
-    protocol.interceptFileProtocol('file', (_, cb) => { cb(null); });
+    protocol.interceptFileProtocol('file', (_, cb) => {
+        cb(null);
+    });
+}
+
+/**
+ * single instance lock 요청
+ * 
+ * 프로그램을 한 프로세스만 켜지도록 만드는 작업.
+ */
+const gotTheLock = app.requestSingleInstanceLock();
+
+if (!gotTheLock) {
+    app.quit();
+} else {
+    app.on('second-instance', () => {
+        // Someone tried to run a second instance, we should focus our window.
+        if (mainWindow) {
+            if (mainWindow.isMinimized() || !mainWindow.isVisible()) {
+                mainWindow.show();
+            }
+            mainWindow.focus();
+        }
+    });
+
 }
 
 // This method will be called when Electron has finished
@@ -162,9 +197,9 @@ ipcMain.handle('cdv-plugin-exec', async (_, serviceName, action, ...args) => {
     if (cordova && cordova.services && cordova.services[serviceName]) {
         const plugin = require(cordova.services[serviceName]);
 
-        return plugin[action]
-            ? plugin[action](args)
-            : Promise.reject(new Error(`The action "${action}" for the requested plugin service "${serviceName}" does not exist.`));
+        return plugin[action] ?
+            plugin[action](args) :
+            Promise.reject(new Error(`The action "${action}" for the requested plugin service "${serviceName}" does not exist.`));
     } else {
         return Promise.reject(new Error(`The requested plugin service "${serviceName}" does not exist have native support.`));
     }
