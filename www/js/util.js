@@ -334,7 +334,7 @@ oAPP.setWWWCompressforVersion = function (sVer) {
 
     var oRetCod = {
         RETCD: "E",
-        MSGTXT: "",
+        RTMSG: "",
         DATA: ""
     };
 
@@ -342,7 +342,7 @@ oAPP.setWWWCompressforVersion = function (sVer) {
         oFound = aRelFolders.find(element => element == sVer);
 
     if (typeof oFound == "undefined") {
-        oRetCod.MSGTXT = "해당 버전이 없습니다.";
+        oRetCod.RTMSG = "해당 버전이 없습니다.";
         return oRetCod;
     }
 
@@ -368,7 +368,7 @@ oAPP.setWWWCompressforVersion = function (sVer) {
 
             console.log(sMsg);
 
-            oRetCod.MSGTXT = sMsg;
+            oRetCod.RTMSG = sMsg;
 
             return oRetCod;
 
