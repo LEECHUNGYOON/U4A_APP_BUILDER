@@ -425,6 +425,14 @@
 
                 oAPP.sendAjax(sPath, oForm);
 
+                oAPP.EVENTSOURCE = new EventSource("/events");
+                oAPP.EVENTSOURCE.onmessage = function (e) {
+
+                    debugger;
+
+                };
+
+
             }; // end of oAPP.onBuild
 
             /***********************************************************************************
@@ -646,6 +654,10 @@
 
                 var xhr = new XMLHttpRequest();
 
+                xhr.onerror = () => {
+                    oAPP.EVENTSOURCE.close();
+                };
+
                 xhr.onreadystatechange = function () {
 
                     if (xhr.readyState == 4 && xhr.status == 200) {
@@ -661,12 +673,17 @@
                                     oRet = JSON.parse(sRetJson);
 
                                 if (oRet.RETCD == "E") {
+
                                     oAPP.onMessageBoxError(oRet.RTMSG);
+
                                     oAPP.setBusy(false);
+
+                                    oAPP.EVENTSOURCE.close();
+
                                     return;
                                 }
 
-                            }
+                            };
 
                             reader.readAsText(oResponse);
 
@@ -685,12 +702,15 @@
                         a.download = Lfnam;
                         a.click();
                         a.remove();
+
                         window.URL.revokeObjectURL(url);
 
                         oAPP.onMessageBoxSuccess("build success!!");
 
                         oAPP.setBusy(false);
-                        
+
+                        oAPP.EVENTSOURCE.close();
+
                     }
 
                 };

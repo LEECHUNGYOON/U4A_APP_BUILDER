@@ -155,6 +155,17 @@
 
         server.on('request', function (req, res) {
 
+            if (req.headers.accept && req.headers.accept == 'text/event-stream') {
+                if (req.url == '/events') {
+                    sendSSE(req, res);
+                } else {
+                    res.writeHead(404);
+                    res.end();
+                }
+
+                return;
+            }
+
             switch (req.url) {
                 case "/ping": // 서버 연결 상태 확인
                     oAPP.onPingCheck(req, res);
@@ -209,6 +220,13 @@
         });
 
     }; // end of oAPP.onStart    
+
+    function sendSSE(){
+
+        // oAPP.aaa 있는지?
+        debugger;
+
+    }
 
     /************************************************************************
      * 플러그인 목록 업데이트 하기  
@@ -1184,6 +1202,15 @@
     };
 
     oAPP.onCreateApp = function (req, res) {
+
+        debugger;
+
+        oAPP.aaa = "X";
+
+
+        return;
+
+
 
         if (req.method != "POST") {
 

@@ -425,6 +425,14 @@
 
                 oAPP.sendAjax(sPath, oForm);
 
+                var source = new EventSource("/events");
+                source.onmessage = function (e) {
+                    
+                    debugger;
+
+                };
+
+
             }; // end of oAPP.onBuild
 
             /***********************************************************************************
@@ -690,7 +698,7 @@
                         oAPP.onMessageBoxSuccess("build success!!");
 
                         oAPP.setBusy(false);
-                        
+
                     }
 
                 };
