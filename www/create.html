@@ -151,7 +151,8 @@
                                                     text: "Debug Mode?"
                                                 }),
                                                 fields: new sap.m.CheckBox({
-                                                    selected: "{/ISDBG}"
+                                                    selected: "{/ISDBG}",
+                                                    enabled: false
                                                 })
                                             }),
 
@@ -319,7 +320,7 @@
             oAPP.onInitModeling = () => {
 
                 oAPP.oInitModelData = {
-                    ISDBG: false,
+                    ISDBG: true,
                     APPID: "",
                     APPDESC: "",
                     SHORTCUT: "",
@@ -340,7 +341,7 @@
                 };
 
                 oAPP.oSampleData = {
-                    ISDBG: false,
+                    ISDBG: true,
                     APPID: "YTEST01",
                     APPDESC: "테스트입니다",
                     SHORTCUT: "",
@@ -688,6 +689,8 @@
 
                         oAPP.onMessageBoxSuccess("build success!!");
 
+                        oAPP.setBusy(false);
+                        
                     }
 
                 };

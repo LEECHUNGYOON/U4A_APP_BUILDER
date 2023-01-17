@@ -1311,8 +1311,6 @@
 
     oAPP._onCreateApp = async function (req, res, oFormData, sRandomKey) {
 
-        debugger;
-        
         oAPP.writeMsg("플러그인 복사중...");
 
         // 플러그인을 서버에서 로컬로 복사한다.
@@ -1942,14 +1940,14 @@
             // });
 
             // 로컬에 복사한 플러그인 파일을 삭제한다.
-            oAPP.onRemovePlugins(req, res, oFormData, sRandomKey);
+            oAPP.onRemovePlugins(oFormData, sRandomKey);
 
         }); // end of FS.readFile
 
     }; // end of oAPP.onRespBuildApp
 
     // 로컬에 복사한 플러그인을 삭제한다.
-    oAPP.onRemovePlugins = async (req, res, oFormData, sRandomKey) => {
+    oAPP.onRemovePlugins = async (oFormData, sRandomKey) => {
 
         var oFields = oFormData.FIELDS,
             sAppId = oFields.APPID;
