@@ -35,6 +35,7 @@
      * Common Variables..
      ************************************************************************************************/
     var oAPP = {};
+    oAPP.BUSY_STATUS_TXT = ""; // Busy dialog Status Text
 
     /************************************************************************************************
      * INITIALIZATION
@@ -156,8 +157,9 @@
         server.on('request', function (req, res) {
 
             if (req.headers.accept && req.headers.accept == 'text/event-stream') {
-                if (req.url == '/events') {
-                    sendSSE(req, res);
+
+                if (req.url == '/appcreate') {
+                    _sendSSE(req, res);
                 } else {
                     res.writeHead(404);
                     res.end();
@@ -219,16 +221,55 @@
 
         });
 
-    }; // end of oAPP.onStart    
+    }; // end of oAPP.onStart
 
-    function sendSSE(req, res){
+    // SSE 에서 돌고 있는 인터벌을 중지한다.
+    function _SSEclearInterval() {
 
-        // oAPP.aaa 있는지?
-        
-        debugger;
-
+        if (oAPP.createInterval) {
+            clearInterval(oAPP.createInterval);
+            delete oAPP.createInterval;
+        }
 
     }
+
+    function _sendSSE(req, res) {
+
+        let sStatus_txt = "";
+
+        // SSE 에서 돌고 있는 인터벌을 중지한다.
+        _SSEclearInterval();
+
+        oAPP.createInterval = setInterval(() => {
+
+            // 메시지 텍스트가 FINISH 면 인터벌 종료
+            if (oAPP.BUSY_STATUS_TXT == "FINISH") {
+                clearInterval(oAPP.createInterval);
+                delete oAPP.createInterval;
+                return;
+            }
+
+            if (oAPP.BUSY_STATUS_TXT == "") {
+                return;
+            }
+
+            if (sStatus_txt !== oAPP.BUSY_STATUS_TXT) {
+
+                res.writeHead(200, {
+                    'Content-Type': 'text/event-stream',
+                    'Cache-Control': 'no-cache',
+                    'Connection': 'keep-alive'
+                });
+
+                res.write("data: " + oAPP.BUSY_STATUS_TXT + '\n\n');
+
+                sStatus_txt = oAPP.BUSY_STATUS_TXT;
+
+            }
+
+        }, 1000);
+
+    } // end of sendSSE
 
     /************************************************************************
      * 플러그인 목록 업데이트 하기  
@@ -273,10 +314,16 @@
 
             oAPP.writeMsg('error: ' + err);
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         });
 
@@ -285,10 +332,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -312,10 +365,16 @@
 
         if (typeof oFields === "undefined") {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": "Plugin 정보가 없습니다."
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": "Plugin 정보가 없습니다."
+            // }));
 
             return;
         }
@@ -338,10 +397,16 @@
         // 플러그인 파일이 없을 경우
         if (bIsPluginExist == false) {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 RETCD: "E",
                 MSG: "Plugins.json 파일이 없습니다."
             }));
+
+            // res.end(JSON.stringify({
+            //     RETCD: "E",
+            //     MSG: "Plugins.json 파일이 없습니다."
+            // }));
 
             return;
         }
@@ -353,10 +418,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -379,7 +450,11 @@
         // 버전 정보 구하기.
         var oResult = oAPP.getVersionList();
         if (oResult.RETCD == 'E') {
-            res.end(JSON.stringify(oResult));
+
+            // response error
+            _res_error(res, JSON.stringify(oResult));
+
+            // res.end(JSON.stringify(oResult));
             return;
         }
 
@@ -390,10 +465,16 @@
         // 플러그인 파일이 없을 경우
         if (bIsPluginExist == false) {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 RETCD: "E",
                 MSG: "Plugins.json 파일이 없습니다."
             }));
+
+            // res.end(JSON.stringify({
+            //     RETCD: "E",
+            //     MSG: "Plugins.json 파일이 없습니다."
+            // }));
 
             return;
         }
@@ -456,10 +537,16 @@
 
             oAPP.writeMsg('error: ' + err);
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         });
 
@@ -468,10 +555,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -495,20 +588,32 @@
 
         if (typeof oFields === "undefined") {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": "Version 정보가 없습니다."
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": "Version 정보가 없습니다."
+            // }));
 
             return;
         }
 
         if (typeof oFiles === "undefined") {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": "업데이트할 파일이 없습니다."
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": "업데이트할 파일이 없습니다."
+            // }));
 
             return;
         }
@@ -523,10 +628,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -538,10 +649,16 @@
 
                 if (err) {
 
-                    res.end(JSON.stringify({
+                    // response error
+                    _res_error(res, JSON.stringify({
                         "RETCD": "E",
                         "RTMSG": err.toString()
                     }));
+
+                    // res.end(JSON.stringify({
+                    //     "RETCD": "E",
+                    //     "RTMSG": err.toString()
+                    // }));
 
                     return;
                 }
@@ -589,10 +706,16 @@
 
                     }).catch(function (err) {
 
-                        res.end(JSON.stringify({
+                        // response error
+                        _res_error(res, JSON.stringify({
                             "RETCD": "E",
                             "RTMSG": err.toString()
                         }));
+
+                        // res.end(JSON.stringify({
+                        //     "RETCD": "E",
+                        //     "RTMSG": err.toString()
+                        // }));
 
                     }); // end of FS.copy
 
@@ -614,10 +737,16 @@
 
         }).catch(function (err) {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         }); // end of ZIP.extract
 
@@ -666,10 +795,16 @@
             //따로 에러에 대한 복잡한 처리없이 간단하고 효율적으로 처리할 수 있다.
             oAPP.writeMsg('error: ' + err);
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         });
 
@@ -678,10 +813,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -726,10 +867,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -741,10 +888,16 @@
 
                 if (err) {
 
-                    res.end(JSON.stringify({
+                    // response error
+                    _res_error(res, JSON.stringify({
                         "RETCD": "E",
                         "RTMSG": err.toString()
                     }));
+
+                    // res.end(JSON.stringify({
+                    //     "RETCD": "E",
+                    //     "RTMSG": err.toString()
+                    // }));
 
                     return;
                 }
@@ -788,10 +941,16 @@
 
                     }).catch(function (err) {
 
-                        res.end(JSON.stringify({
+                        // response error
+                        _res_error(res, JSON.stringify({
                             "RETCD": "E",
                             "RTMSG": err.toString()
                         }));
+
+                        // res.end(JSON.stringify({
+                        //     "RETCD": "E",
+                        //     "RTMSG": err.toString()
+                        // }));
 
                     }); // end of FS.copy
 
@@ -898,10 +1057,16 @@
             //따로 에러에 대한 복잡한 처리없이 간단하고 효율적으로 처리할 수 있다.
             oAPP.writeMsg('error: ' + err);
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         });
 
@@ -910,10 +1075,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -939,10 +1110,16 @@
         // 해당 버전 폴더가 없으면 오류
         if (!FS.existsSync(sFolderPath)) {
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
             return;
         }
@@ -961,10 +1138,16 @@
 
                     oAPP.writeMsg(err.toString());
 
-                    res.end(JSON.stringify({
+                    // response error
+                    _res_error(res, JSON.stringify({
                         "RETCD": "E",
                         "RTMSG": err.toString()
                     }));
+
+                    // res.end(JSON.stringify({
+                    //     "RETCD": "E",
+                    //     "RTMSG": err.toString()
+                    // }));
 
                     return;
                 }
@@ -988,10 +1171,16 @@
                 oAPP.writeMsg(err);
                 oAPP.writeMsg(err.toString());
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
             }
 
@@ -1161,10 +1350,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": "create.html File Read Fail!"
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": "create.html File Read Fail!"
+                // }));
 
                 return;
             }
@@ -1188,10 +1383,16 @@
 
             if (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": "Error File Read Fail!"
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": "Error File Read Fail!"
+                // }));
 
                 return;
             }
@@ -1205,14 +1406,17 @@
 
     oAPP.onCreateApp = function (req, res) {
 
-        debugger;
+        // // test 
+        // if (oAPP.use && oAPP.use == "X") {
 
-        oAPP.aaa = "X";
+        //     // response error
+        //     _res_error(res, JSON.stringify({
+        //         "RETCD": "E",
+        //         "RTMSG": "현재 다른 사용자가 사용중입니다. 잠시후 다시 시도해 주세요."
+        //     }));
 
-
-        return;
-
-
+        //     return;
+        // }
 
         if (req.method != "POST") {
 
@@ -1262,10 +1466,16 @@
             //따로 에러에 대한 복잡한 처리없이 간단하고 효율적으로 처리할 수 있다.
             oAPP.writeMsg('error: ' + err);
 
-            res.end(JSON.stringify({
+            // response error
+            _res_error(res, JSON.stringify({
                 "RETCD": "E",
                 "RTMSG": err.toString()
             }));
+
+            // res.end(JSON.stringify({
+            //     "RETCD": "E",
+            //     "RTMSG": err.toString()
+            // }));
 
         });
 
@@ -1273,10 +1483,18 @@
         FORM.parse(req, (err, fields, files) => {
 
             if (err) {
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
+
                 return;
             }
 
@@ -1288,10 +1506,17 @@
             // 필수 파라미터 전달 여부 체크
             var oRet = oAPP.onCheckAppInfo(oFormData.FIELDS);
             if (oRet.RETCD == "E") {
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": oRet.MSG
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": oRet.MSG
+                // }));
 
                 return;
             }
@@ -1340,7 +1565,20 @@
 
     oAPP._onCreateApp = async function (req, res, oFormData, sRandomKey) {
 
+        // // test
+        // oAPP.use = "X";
+
+        // res.end(JSON.stringify({
+        //     "RETCD": "E",
+        //     "RTMSG": "zzz"
+        // }));
+
+        // return;
+
+
         oAPP.writeMsg("플러그인 복사중...");
+
+        oAPP.BUSY_STATUS_TXT = "플러그인 복사중...";
 
         // 플러그인을 서버에서 로컬로 복사한다.
         var oReturnData = await MPLUGININFO.getPlugin(REMOTE, PATH, FS, PATHINFO.PLUGIN_PATH);
@@ -1348,7 +1586,10 @@
 
             oAPP.writeMsg("플러그인 복사중 실패!!: " + oReturnData.RTMSG);
 
-            res.end(JSON.stringify(oReturnData));
+            // response error
+            _res_error(res, JSON.stringify(oReturnData));
+
+            // res.end(JSON.stringify(oReturnData));
 
             return;
 
@@ -1369,16 +1610,24 @@
 
         oAPP.writeMsg("cordova project [---" + sAppId + "---] create Start!!!");
 
+        oAPP.BUSY_STATUS_TXT = `[${sAppId}] Cordova Project 생성중`;
+
         // NODECMD
         NODECMD.run(sCmd, function (err, data, stderr) {
 
             if (err) {
                 console.error(err);
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -1386,6 +1635,8 @@
             oAPP.writeMsg(data);
 
             oAPP.writeMsg("cordova project [---" + sAppId + "---] create Finish!!!");
+
+            oAPP.BUSY_STATUS_TXT = `[${sAppId}] Cordova Project 생성완료`;
 
             // 최신버전의 파일 원본을 방금 생성한 폴더에 Overrite 한다.
             oAPP.onCopyOrgToCrateApp(req, res, oFormData, sRandomKey);
@@ -1415,10 +1666,16 @@
             if (err) {
                 console.error(err);
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -1426,11 +1683,17 @@
 
             var iOrgFileLength = aFiles.length;
             if (iOrgFileLength <= 0) {
-                // error 처리..
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": "복사할 파일 대상이 없습니다."
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": "복사할 파일 대상이 없습니다."
+                // }));
 
                 return;
             }
@@ -1446,6 +1709,8 @@
 
                 oAPP.writeMsg('file copy success!! -->' + sAppId);
 
+                oAPP.BUSY_STATUS_TXT = `[${sAppId}] WWW 폴더 복사완료`;
+
                 // index.js의 각종 파라미터들을 Replace 한다.
                 oAPP.onReplaceParamToIndexJs(req, res, oFormData, sRandomKey);
 
@@ -1453,10 +1718,16 @@
 
                 console.error(err);
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
             });
 
@@ -1487,11 +1758,20 @@
         }, (err, data) => {
 
             if (err) {
+
                 console.error(err);
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
+
                 return;
             }
 
@@ -1506,10 +1786,17 @@
             FS.unlink(sIndexJsPath, (err) => {
                 if (err) {
                     console.error(err);
-                    res.end(JSON.stringify({
+
+                    // response error
+                    _res_error(res, JSON.stringify({
                         "RETCD": "E",
                         "RTMSG": err.toString()
                     }));
+
+                    // res.end(JSON.stringify({
+                    //     "RETCD": "E",
+                    //     "RTMSG": err.toString()
+                    // }));
                     return;
                 }
 
@@ -1517,14 +1804,23 @@
 
                     if (err) {
                         console.error(err);
-                        res.end(JSON.stringify({
+
+                        // response error
+                        _res_error(res, JSON.stringify({
                             "RETCD": "E",
                             "RTMSG": err.toString()
                         }));
+
+                        // res.end(JSON.stringify({
+                        //     "RETCD": "E",
+                        //     "RTMSG": err.toString()
+                        // }));
                         return;
                     }
 
                     oAPP.writeMsg("index.js write 성공! ---->" + sAppId);
+
+                    oAPP.BUSY_STATUS_TXT = `[${sAppId}] index.js write 성공`;
 
                     // config.xml replace
                     oAPP.onReplaceParamToConfigXml(req, res, oFormData, sRandomKey);
@@ -1556,10 +1852,17 @@
 
             if (err) {
                 console.error(err);
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
                 return;
             }
 
@@ -1571,10 +1874,17 @@
             FS.unlink(sConfigXmlPath, (err) => {
                 if (err) {
                     console.error(err);
-                    res.end(JSON.stringify({
+
+                    // response error
+                    _res_error(res, JSON.stringify({
                         "RETCD": "E",
                         "RTMSG": err.toString()
                     }));
+
+                    // res.end(JSON.stringify({
+                    //     "RETCD": "E",
+                    //     "RTMSG": err.toString()
+                    // }));
                     return;
                 }
 
@@ -1582,14 +1892,23 @@
 
                     if (err) {
                         console.error(err);
-                        res.end(JSON.stringify({
+
+                        // response error
+                        _res_error(res, JSON.stringify({
                             "RETCD": "E",
                             "RTMSG": err.toString()
                         }));
+
+                        // res.end(JSON.stringify({
+                        //     "RETCD": "E",
+                        //     "RTMSG": err.toString()
+                        // }));
                         return;
                     }
 
                     oAPP.writeMsg("config.xml write 성공! ---->" + sAppId);
+
+                    oAPP.BUSY_STATUS_TXT = `[${sAppId}] config.xml write 성공`;
 
                     var oPromise1 = oAPP.onShortCutImageChange(oFormData, sRandomKey),
                         oPromise2 = oAPP.onIntroImageChange(oFormData, sRandomKey);
@@ -1652,6 +1971,9 @@
                             return;
                         }
                         oAPP.writeMsg("------- ShortCut Image Write Success!" + sAppId + "-----------");
+
+                        oAPP.BUSY_STATUS_TXT = `[${sAppId}] ShortCut Image write 성공`;
+
                         resolve('X');
 
                     }); // end of writeFile
@@ -1707,6 +2029,9 @@
                         }
 
                         oAPP.writeMsg("------- Intro Image Write Success!" + sAppId + "-----------");
+
+                        oAPP.BUSY_STATUS_TXT = `[${sAppId}] Intro Image Write 성공`;
+
                         resolve('X');
 
                     }); // end of writeFile
@@ -1735,15 +2060,23 @@
 
         oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Start!!!");
 
+        oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 시작!`;
+
         NODECMD.run(sCmd, function (err, data, stderr) {
 
             if (err) {
                 console.error(err);
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -1751,6 +2084,8 @@
             oAPP.writeMsg(data);
 
             oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Finish!!!");
+
+            oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 완료!`;
 
             oAPP.onCopyBuildExtraFile(req, res, oFormData, sRandomKey).then(() => {
 
@@ -1787,14 +2122,23 @@
             FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function () {
 
                 oAPP.writeMsg('Build-extra.gradle 파일 복사 성공!!!! -->' + sAppId);
+
+                oAPP.BUSY_STATUS_TXT = `[${sAppId}] Build-extra.gradle (난독화 적용 파일) 복사 성공!`;
+
                 resolve();
 
             }).catch(function (err) {
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
             }); // end of FS.copy
 
@@ -1839,20 +2183,31 @@
 
         oAPP.writeMsg("plugin Install Start. : ---->" + sAppId);
 
+        oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 시작!`;
+
         NODECMD.run(sCmd, function (err, data, stderr) {
 
             if (err) {
                 console.error(err);
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
                 return;
             }
 
             oAPP.writeMsg(data);
 
             oAPP.writeMsg("plugin Install Finish. : ---->" + sAppId);
+
+            oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 종료!`;
 
             // app build
             oAPP.onBuildApp(req, res, oFormData, sRandomKey);
@@ -1888,15 +2243,23 @@
 
         oAPP.writeMsg("android app build start. ---->" + sAppId);
 
+        oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 시작!`;
+
         NODECMD.run(sCmd, function (err, data, stderr) {
 
             if (err) {
                 console.error(err);
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -1904,6 +2267,8 @@
             oAPP.writeMsg(data);
 
             oAPP.writeMsg("android app build finish. ---->" + sAppId);
+
+            oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 종료!`;
 
             // apk 파일 response
             oAPP.onRespBuildApp(req, res, oFormData, sRandomKey);
@@ -1940,10 +2305,16 @@
 
                 oAPP.writeMsg(err.toString());
 
-                res.end(JSON.stringify({
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
 
                 return;
             }
@@ -1965,6 +2336,8 @@
             res.end();
 
             oAPP.writeMsg("--------------- apk file return!!!-- (" + sAppId + ") ----------------");
+
+            oAPP.BUSY_STATUS_TXT = "FINISH";
 
             // });
 
@@ -2019,10 +2392,17 @@
 
             if (err) {
                 console.error(err);
-                res.end(JSON.stringify({
+
+                // response error
+                _res_error(res, JSON.stringify({
                     "RETCD": "E",
                     "RTMSG": err.toString()
                 }));
+
+                // res.end(JSON.stringify({
+                //     "RETCD": "E",
+                //     "RTMSG": err.toString()
+                // }));
                 return;
             }
 
@@ -2121,6 +2501,21 @@
         APP.exit();
 
     }; // end of oAPP.onAppRestart
+
+
+    /************************************************************************
+     * Error Response
+     ************************************************************************/
+    function _res_error(res, oReturn) {
+
+        res.end(oReturn);
+
+        // SSE 에서 돌고 있는 인터벌을 중지한다.
+        _SSEclearInterval();
+
+        oAPP.BUSY_STATUS_TXT = "";
+
+    } // end of _res_error
 
     window.oAPP = oAPP;
 

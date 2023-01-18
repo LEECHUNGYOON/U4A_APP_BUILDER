@@ -91,6 +91,15 @@
 
                 oApp.addEventDelegate(oAPP.oDelegate);
 
+                // Busy dialog 생성
+                oAPP.BUSYDIALOG = new sap.m.BusyDialog({
+                    text: "{/BUSY_TXT}",
+                    // showCancelButton: true,
+                    // close: function () {
+                    //     XHR.abort();
+                    // }
+                });
+
             }; // end of oAPP.onInitRendering
 
             oAPP.getPageContent = () => {
@@ -357,7 +366,8 @@
                     {
                         value: "https"
                     },
-                    ]
+                    ],
+
                 };
 
                 let oInitModelData = jQuery.extend(true, {}, oAPP.oSampleData);
@@ -384,7 +394,7 @@
 
                 sap.ui.getCore().getModel().setProperty("/INTRO", oFile || "");
 
-            }; // end of oAPP.onUploadCompleteIntro          
+            }; // end of oAPP.onUploadCompleteIntro              
 
             oAPP.onBuild = () => {
 
@@ -409,6 +419,9 @@
 
                 }
 
+                // Busy Dialog에 상태 텍스트를 보여준다.
+                oAPP.setBusyDialogTxt("앱 빌드 요청...");
+
                 let sPath = "/create";
 
                 let oForm = new FormData();
@@ -425,13 +438,12 @@
 
                 oAPP.sendAjax(sPath, oForm);
 
-                oAPP.EVENTSOURCE = new EventSource("/events");
+                oAPP.EVENTSOURCE = new EventSource("/appcreate");
                 oAPP.EVENTSOURCE.onmessage = function (e) {
 
-                    debugger;
+                    oAPP.setBusyDialogTxt(e.data);
 
                 };
-
 
             }; // end of oAPP.onBuild
 
@@ -674,9 +686,9 @@
 
                                 if (oRet.RETCD == "E") {
 
-                                    oAPP.onMessageBoxError(oRet.RTMSG);
-
                                     oAPP.setBusy(false);
+
+                                    oAPP.onMessageBoxError(oRet.RTMSG);                                    
 
                                     oAPP.EVENTSOURCE.close();
 
@@ -754,11 +766,40 @@
             oAPP.setBusy = (bIsBusy) => {
 
                 if (bIsBusy) {
-                    sap.ui.core.BusyIndicator.show(0);
+                    oAPP.BUSYDIALOG.open();
                     return;
                 }
 
-                sap.ui.core.BusyIndicator.hide();
+                oAPP.BUSYDIALOG.close();
+
+                // if (bIsBusy) {
+                //     sap.ui.core.BusyIndicator.show(0);
+                //     return;
+                // }
+
+                // sap.ui.core.BusyIndicator.hide();
+
+            };
+
+            // Busy Dialog Text 변경
+            oAPP.setBusyDialogTxt = (sText) => {
+
+                if (!oAPP.BUSYDIALOG) {
+                    return;
+                }
+
+                let oDialogModel = oAPP.BUSYDIALOG.getModel();
+                if (!oDialogModel) {
+
+                    let oJsonModel = new sap.ui.model.json.JSONModel();
+                    oJsonModel.setData({ BUSY_TXT: sText });
+
+                    oAPP.BUSYDIALOG.setModel(oJsonModel);
+
+                    return;
+                }
+
+                oDialogModel.setProperty("/BUSY_TXT", sText);
 
             };
 
