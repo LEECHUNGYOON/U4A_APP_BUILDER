@@ -1,7 +1,7 @@
 {
     "browserWindow": {
         "height": 800,
-        "width": 800,        
+        "width": 800,
         "webPreferences": {
             "devTools": true,
             "nodeIntegration": true,
@@ -9,7 +9,8 @@
             "contextIsolation": false,
             "backgroundThrottling": false,
             "nativeWindowOpen": true,
-            "webSecurity": false
-        }        
+            "webSecurity": false,
+            "nodeIntegrationInWorker": true
+        }
     }
 }
