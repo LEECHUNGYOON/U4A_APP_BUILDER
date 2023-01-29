@@ -1,4 +1,4 @@
-self.onmessage = (oEvent) => {    
+self.onmessage = (oEvent) => {
 
     const
         PATH = require('path'),
@@ -9,11 +9,16 @@ self.onmessage = (oEvent) => {
 
     setTimeout(() => {
 
-        debugger;
+        let resData = oEvent.data,
+            oFormData = resData.oFormData,
+            appid = oFormData.FIELDS.APPID;
 
-        let resData = oEvent.data;
+        let sendData = {
+            key: resData.sRandomKey,
+            appid: appid
+        }
 
-        self.postMessage(resData.sRandomKey);
+        self.postMessage(sendData);
 
     }, 5000);
 

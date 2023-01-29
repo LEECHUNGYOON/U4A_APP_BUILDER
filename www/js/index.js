@@ -1565,12 +1565,14 @@
 
     function onWorkerMessage(req, res, oEvent, oWorker) {
 
-        debugger;
+        let resData = oEvent.data;
+
+        let sMsg = `appid: ${resData.appid},    key: ${resData.key}`;
 
         // response error
         _res_error(res, JSON.stringify({
             RETCD: "E",
-            RTMSG: "오류: " + oEvent.data
+            RTMSG: sMsg
         }));
 
         oWorker.terminate();
