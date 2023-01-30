@@ -9,7 +9,8 @@
             "contextIsolation": false,
             "backgroundThrottling": false,
             "nativeWindowOpen": true,
-            "webSecurity": false
+            "webSecurity": false,
+            "nodeIntegrationInWorker": true
         }        
     }
 }

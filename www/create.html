@@ -4,14 +4,22 @@
 <head>
     <title>U4A ANDROID APP BUILDER</title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta http-equiv="Content-Type"
+          content="text/html;charset=utf-8" />
+    <meta http-equiv="X-UA-Compatible"
+          content="IE=Edge" />
 
-    <script id="sap-ui-bootstrap" src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
-        data-sap-ui-language="EN" data-sap-ui-preload="async" data-sap-ui-compatversion="edge"
-        data-sap-ui-theme="sap_fiori_3_dark" data-sap-ui-libs="sap.m" data-sap-ui-noduplicateids="true">
-        </script>
+    <script id="sap-ui-bootstrap"
+            src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
+            data-sap-ui-language="EN"
+            data-sap-ui-preload="async"
+            data-sap-ui-compatversion="edge"
+            data-sap-ui-theme="sap_fiori_3_dark"
+            data-sap-ui-libs="sap.m"
+            data-sap-ui-noduplicateids="true">
+    </script>
     <style>
         .sapUiFormToolbar .sapMIBar.sapMTB {
             border-bottom: none;
@@ -20,13 +28,27 @@
 </head>
 
 <body class="sapUiBody">
-    <div id="content" style="display:none;"></div>
+    <div id="content"
+         style="display:none;"></div>
 
     <script>
         (() => {
             "use strict";
 
             var oAPP = {};
+
+            oAPP.getRandomKey = (num) => {
+
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < num; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+
+                return result;
+
+            };
 
             oAPP.onStart = () => {
 
@@ -47,8 +69,8 @@
                 jQuery.sap.require("sap.m.MessageBox");
 
                 let oApp = new sap.m.App({
-                    autoFocus: false
-                }),
+                        autoFocus: false
+                    }),
                     aPageContent = oAPP.getPageContent(),
                     oPage = new sap.m.Page({
                         customHeader: new sap.m.Toolbar({
@@ -80,7 +102,7 @@
                 oApp.placeAt("content");
 
                 oAPP.oDelegate = {
-                    onAfterRendering: function () {
+                    onAfterRendering: function() {
 
                         jQuery("#content").fadeIn(1000);
 
@@ -340,11 +362,11 @@
                     PATH: "",
                     PARAM: "",
                     PROTO_LIST: [{
-                        value: "http"
-                    },
-                    {
-                        value: "https"
-                    },
+                            value: "http"
+                        },
+                        {
+                            value: "https"
+                        },
                     ]
 
                 };
@@ -361,11 +383,11 @@
                     PATH: "/zu4a/ylcy_cdv05",
                     PARAM: "sap-client=800&sap-language=EN",
                     PROTO_LIST: [{
-                        value: "http"
-                    },
-                    {
-                        value: "https"
-                    },
+                            value: "http"
+                        },
+                        {
+                            value: "https"
+                        },
                     ],
 
                 };
@@ -424,6 +446,10 @@
 
                 let sPath = "/create";
 
+                debugger;
+
+                let sRandomKey = oAPP.getRandomKey(50);
+
                 let oForm = new FormData();
                 oForm.append("ISDBG", oModelData.ISDBG == true ? "X" : "");
                 oForm.append("APPID", oModelData.APPID);
@@ -435,15 +461,40 @@
                 oForm.append("PARAM", oModelData.PARAM);
                 oForm.append("SHORTCUT", oModelData.SHORTCUT || "");
                 oForm.append("INTRO", oModelData.INTRO || "");
+                oForm.append("KEY", sRandomKey);
 
-                oAPP.sendAjax(sPath, oForm);
+                let WS = new WebSocket("ws://u4arnd.iptime.org:9401/U4A/appbuild", [sRandomKey]);
+                WS.onopen = function(e) {
 
-                oAPP.EVENTSOURCE = new EventSource("/appcreate");
-                oAPP.EVENTSOURCE.onmessage = function (e) {
+                    debugger;
 
-                    oAPP.setBusyDialogTxt(e.data);
+                    //실제 생성 서버 요청을 여기서 
+                    oAPP.sendAjax(sPath, oForm);
 
                 };
+
+                WS.onmessage = function(e) {
+
+                    let oResData = JSON.parse(e.data);
+
+                    oAPP.setBusyDialogTxt(oResData.RTMSG);
+
+                };
+
+                WS.onerror = (e) => {
+
+                    debugger;
+
+                    oAPP.setBusyDialogTxt(e.toString());
+
+                };
+
+                // oAPP.EVENTSOURCE = new EventSource(`/create?KEY=${sRandomKey}`);
+                // oAPP.EVENTSOURCE.onmessage = function(e) {
+
+                //     oAPP.setBusyDialogTxt(e.data);
+
+                // };
 
             }; // end of oAPP.onBuild
 
@@ -483,7 +534,7 @@
             }; // end of oAPP.onCheckAppInfo
 
             // APPID 입력 체크
-            oAPP.checkValidAppId = function (sAppId) {
+            oAPP.checkValidAppId = function(sAppId) {
 
                 var oRetMsg = {
                     CODE: "E",
@@ -531,7 +582,7 @@
             }; // end of oAPP.checkValidAppId
 
             // App Description 입력 체크
-            oAPP.checkValidAppDesc = function (sAppDesc) {
+            oAPP.checkValidAppDesc = function(sAppDesc) {
 
                 var oRetMsg = {
                     CODE: "E",
@@ -552,7 +603,7 @@
             }; // end of oAPP.checkValidAppDesc
 
             // Protocol 입력 체크
-            oAPP.checkValidProtocol = function (sProto) {
+            oAPP.checkValidProtocol = function(sProto) {
 
                 var oRetMsg = {
                     CODE: "E",
@@ -573,7 +624,7 @@
             }; // end of oAPP.checkValidProtocol
 
             // Host 입력 체크
-            oAPP.checkValidHost = function (sHost) {
+            oAPP.checkValidHost = function(sHost) {
 
                 var oRetMsg = {
                     CODE: "E",
@@ -594,7 +645,7 @@
             }; // end of oAPP.checkValidHost
 
             // Path 입력 체크
-            oAPP.checkValidPath = function (sPath) {
+            oAPP.checkValidPath = function(sPath) {
 
                 var oRetMsg = {
                     CODE: "E",
@@ -615,7 +666,7 @@
             }; // end of oAPP.checkValidPath
 
             // 영문 + 숫자 입력 체크
-            oAPP.checkEngNum = function (str) {
+            oAPP.checkEngNum = function(str) {
                 var regExp = /^[A-Za-z]|^[A-Za-z]+[A-Za-z0-9]+/g;
 
                 if (regExp.test(str)) {
@@ -627,7 +678,7 @@
             };
 
             // 특수문자 체크
-            oAPP.checkSpecial = function (str) {
+            oAPP.checkSpecial = function(str) {
                 var special_pattern = /[`~!@#$%^&*|\\\'\";:\/?]/gi;
                 if (special_pattern.test(str) == true) {
                     console.log("특수문자 걸림!!");
@@ -638,7 +689,7 @@
             };
 
             // 공백(스페이스 바) 체크 
-            oAPP.checkSpace = function (str) {
+            oAPP.checkSpace = function(str) {
                 if (str.search(/\s/) !== -1) {
                     console.log("공백 있음!!");
                     return true;
@@ -662,15 +713,15 @@
             }; // end of oAPP.onFileSizeExceed
 
             // Build 대상 APP 정보 전송
-            oAPP.sendAjax = function (pUrl, pFormData) {
+            oAPP.sendAjax = function(pUrl, pFormData) {
 
                 var xhr = new XMLHttpRequest();
 
                 xhr.onerror = () => {
-                    oAPP.EVENTSOURCE.close();
+                    // oAPP.EVENTSOURCE.close();
                 };
 
-                xhr.onreadystatechange = function () {
+                xhr.onreadystatechange = function() {
 
                     if (xhr.readyState == 4 && xhr.status == 200) {
 
@@ -679,7 +730,7 @@
                         if (oResponse instanceof Blob && oResponse.type.startsWith("text")) {
 
                             var reader = new FileReader();
-                            reader.onload = function () {
+                            reader.onload = function() {
 
                                 var sRetJson = reader.result,
                                     oRet = JSON.parse(sRetJson);
@@ -688,9 +739,9 @@
 
                                     oAPP.setBusy(false);
 
-                                    oAPP.onMessageBoxError(oRet.RTMSG);                                    
+                                    oAPP.onMessageBoxError(oRet.RTMSG);
 
-                                    oAPP.EVENTSOURCE.close();
+                                    // oAPP.EVENTSOURCE.close();
 
                                     return;
                                 }
@@ -721,7 +772,7 @@
 
                         oAPP.setBusy(false);
 
-                        oAPP.EVENTSOURCE.close();
+                        // oAPP.EVENTSOURCE.close();
 
                     }
 
@@ -792,7 +843,9 @@
                 if (!oDialogModel) {
 
                     let oJsonModel = new sap.ui.model.json.JSONModel();
-                    oJsonModel.setData({ BUSY_TXT: sText });
+                    oJsonModel.setData({
+                        BUSY_TXT: sText
+                    });
 
                     oAPP.BUSYDIALOG.setModel(oJsonModel);
 
