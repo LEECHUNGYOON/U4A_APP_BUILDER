@@ -47,6 +47,7 @@
     "@electron/remote": "^2.0.9",
     "@octokit/core": "^4.1.0",
     "electron-updater": "^5.3.0",
+    "extend": "^3.0.2",
     "formidable": "^2.0.1",
     "fs-extra": "^10.0.0",
     "http": "0.0.1-security",
@@ -58,6 +59,7 @@
     "screen-saver": "^0.2.1",
     "screensaver": "^2.0.0",
     "uglify-js": "^3.15.1",
+    "url-parse": "^1.5.10",
     "zip-lib": "^0.7.2"
   }
 }

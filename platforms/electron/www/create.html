@@ -28,6 +28,19 @@
 
             var oAPP = {};
 
+            oAPP.getRandomKey = (num) => {
+
+                const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+                let result = '';
+                const charactersLength = characters.length;
+                for (let i = 0; i < num; i++) {
+                    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+                }
+
+                return result;
+
+            };
+
             oAPP.onStart = () => {
 
                 sap.ui.getCore().attachInit(() => {
@@ -424,6 +437,8 @@
 
                 let sPath = "/create";
 
+                let sRandomKey = oAPP.getRandomKey(50);
+
                 let oForm = new FormData();
                 oForm.append("ISDBG", oModelData.ISDBG == true ? "X" : "");
                 oForm.append("APPID", oModelData.APPID);
@@ -435,11 +450,15 @@
                 oForm.append("PARAM", oModelData.PARAM);
                 oForm.append("SHORTCUT", oModelData.SHORTCUT || "");
                 oForm.append("INTRO", oModelData.INTRO || "");
+                oForm.append("KEY", sRandomKey);
 
                 oAPP.sendAjax(sPath, oForm);
 
-                oAPP.EVENTSOURCE = new EventSource("/appcreate");
+                oAPP.EVENTSOURCE = new EventSource(`/create?KEY=${sRandomKey}`);
+
                 oAPP.EVENTSOURCE.onmessage = function (e) {
+
+                    debugger;
 
                     oAPP.setBusyDialogTxt(e.data);
 
@@ -688,7 +707,7 @@
 
                                     oAPP.setBusy(false);
 
-                                    oAPP.onMessageBoxError(oRet.RTMSG);                                    
+                                    oAPP.onMessageBoxError(oRet.RTMSG);
 
                                     oAPP.EVENTSOURCE.close();
 
@@ -727,9 +746,16 @@
 
                 };
 
-                xhr.responseType = "blob";
-                xhr.open("POST", pUrl, true);
-                xhr.send(pFormData);
+                try {
+                    xhr.responseType = "blob";
+                    xhr.open("POST", pUrl, true);
+                    xhr.send(pFormData);
+                } catch (e) {
+
+                    oAPP.onMessageBoxError(e.toString());
+                    oAPP.EVENTSOURCE.close();
+                    oAPP.setBusy(false);
+                }
 
             }; // end of oAPP.sendAjax
 

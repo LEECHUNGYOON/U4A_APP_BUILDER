@@ -12,7 +12,57 @@
     }
   },
   "dependent_plugins": {},
-  "modules": [],
+  "modules": [
+    {
+      "file": "plugins/cordova-plugin-camera/src/browser/CameraProxy.js",
+      "id": "cordova-plugin-camera.CameraProxy",
+      "pluginId": "cordova-plugin-camera",
+      "runs": true
+    },
+    {
+      "file": "plugins/cordova-plugin-file/www/browser/Preparing.js",
+      "id": "cordova-plugin-file.Preparing",
+      "pluginId": "cordova-plugin-file",
+      "runs": true
+    },
+    {
+      "file": "plugins/cordova-plugin-file/src/browser/FileProxy.js",
+      "id": "cordova-plugin-file.browserFileProxy",
+      "pluginId": "cordova-plugin-file",
+      "runs": true
+    },
+    {
+      "file": "plugins/cordova-plugin-file/www/fileSystemPaths.js",
+      "id": "cordova-plugin-file.fileSystemPaths",
+      "pluginId": "cordova-plugin-file",
+      "merges": [
+        "cordova"
+      ],
+      "runs": true
+    },
+    {
+      "file": "plugins/cordova-plugin-file/www/browser/FileSystem.js",
+      "id": "cordova-plugin-file.firefoxFileSystem",
+      "pluginId": "cordova-plugin-file",
+      "merges": [
+        "window.FileSystem"
+      ]
+    },
+    {
+      "file": "plugins/cordova-plugin-inappbrowser/www/inappbrowser.js",
+      "id": "cordova-plugin-inappbrowser.inappbrowser",
+      "pluginId": "cordova-plugin-inappbrowser",
+      "clobbers": [
+        "cordova.InAppBrowser.open"
+      ]
+    },
+    {
+      "file": "plugins/cordova-plugin-inappbrowser/src/browser/InAppBrowserProxy.js",
+      "id": "cordova-plugin-inappbrowser.InAppBrowserProxy",
+      "pluginId": "cordova-plugin-inappbrowser",
+      "runs": true
+    }
+  ],
   "plugin_metadata": {
     "cordova-plugin-whitelist": "1.3.5"
   }

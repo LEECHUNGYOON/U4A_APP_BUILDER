@@ -1,0 +1,6 @@
+self.onmessage = (oReq) => {
+
+    debugger;
+
+
+};
