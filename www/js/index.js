@@ -111,13 +111,10 @@
 
         const HTTP = require('http');
 
-        // var SERVER_IP = IP_ADDR.address(),
-        //     SERVER_PORT = "9992";
-
         var server = HTTP.createServer();
         server.timeout = 1000000;
 
-        server.setTimeout(1000000, (e) => {        
+        server.setTimeout(1000000, (e) => {
             oAPP.writeMsg('request timed out');
         });
 
@@ -140,15 +137,15 @@
 
         //connection 서버에 접속한자가 누군지 안다.
         server.on('connection', function (socket) { //클라이언트 정보를 socket이 갖고있다.
-            
-            oAPP.writeMsg('클라이언트가 접속' + 
+
+            oAPP.writeMsg('클라이언트가 접속' +
                 socket.remoteAddress + ',' +
                 socket.remotePort);
-     
+
         });
 
         server.on('error', function (e) {
- 
+
             oAPP.writeMsg(e);
 
         });
@@ -208,7 +205,56 @@
 
         });
 
+
+
+        await 조또마떼();
+
+        debugger;
+
+        // // 웹소켓 생성        
+        const WS = require('ws');
+
+        // 2. WebSocket 서버 생성/구동
+        const webSocketServer = new WS.Server(
+            {
+                server: server, // WebSocket서버에 연결할 HTTP서버를 지정한다.
+                //port: SERVER_PORT // WebSocket연결에 사용할 port를 지정한다(생략시, http서버와 동일한 port 공유 사용)
+            }
+        );
+
+        // connection(클라이언트 연결) 이벤트 처리
+        webSocketServer.on('connection', (ws, request) => {
+
+            // 1) 연결 클라이언트 IP 취득
+            const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
+
+            console.log(`새로운 클라이언트[${ip}] 접속`);
+
+            // 2) 클라이언트에게 메시지 전송
+            if (ws.readyState === ws.OPEN) { // 연결 여부 체크
+                console.log(`클라이언트[${ip}] 접속을 환영합니다 from 서버`); // 데이터 전송
+            }
+
+            // 3) 클라이언트로부터 메시지 수신 이벤트 처리
+            ws.on('message', (msg) => {
+                console.log(`클라이언트[${ip}]에게 수신한 메시지 : ${msg}`);
+
+            })
+
+            // 4) 에러 처러
+            ws.on('error', (error) => {
+                console.log(`클라이언트[${ip}] 연결 에러발생 : ${error}`);
+            })
+
+            // 5) 연결 종료 이벤트 처리
+            ws.on('close', () => {
+                console.log(`클라이언트[${ip}] 웹소켓 연결 종료`);
+            })
+
+        });
+        
     }; // end of oAPP.onStart
+
 
     // SSE 에서 돌고 있는 인터벌을 중지한다.
     function _SSEclearInterval() {

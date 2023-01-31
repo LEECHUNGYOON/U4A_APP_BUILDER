@@ -452,13 +452,14 @@
                 oForm.append("INTRO", oModelData.INTRO || "");
                 oForm.append("KEY", sRandomKey);
 
-                let WS = new WebSocket("ws://u4arnd.iptime.org:9401/U4A/appbuild", [sRandomKey]);
+                // let WS = new WebSocket("ws://u4arnd.iptime.org:9401/U4A/appbuild", [sRandomKey]);
+                let WS = new WebSocket("ws://192.168.0.35:9992", [sRandomKey]);
                 WS.onopen = function (e) {
 
                     debugger;
 
-                    //실제 생성 서버 요청을 여기서 
-                    oAPP.sendAjax(sPath, oForm);
+                    // //실제 생성 서버 요청을 여기서 
+                    // oAPP.sendAjax(sPath, oForm);
 
                 };
 
