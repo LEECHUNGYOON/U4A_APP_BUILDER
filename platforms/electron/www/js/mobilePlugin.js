@@ -69,10 +69,10 @@ async function getDIR(FS, PATH, TMPSavePath) {
 /* ================================================================= */
 /* Export Module Function 
 /* ================================================================= */
-exports.getPlugin = async function (REMOTE, PATH, FS, ROOTPATH) {
+exports.getPlugin = async function (PATH, FS, ROOTPATH, sRandomKey) {
     return new Promise(async (resolve, reject) => {
 
-        let NodeSSH = REMOTE.require('node-ssh').NodeSSH;
+        let NodeSSH = require('node-ssh').NodeSSH;
 
         const ssh = new NodeSSH();
         const Lpassword = '#u4aRnd$';
@@ -101,7 +101,8 @@ exports.getPlugin = async function (REMOTE, PATH, FS, ROOTPATH) {
         //== 임시 폴더 생성 ================================//
 
         //임시 폴더명 
-        var TMPSavePath = PATH.join(LocalStorageROOT, fn_generateRandomString(50));
+        // var TMPSavePath = PATH.join(LocalStorageROOT, fn_generateRandomString(50));
+        var TMPSavePath = PATH.join(LocalStorageROOT, sRandomKey);
 
         if (!FS.existsSync(TMPSavePath)) {
             FS.mkdirSync(TMPSavePath);

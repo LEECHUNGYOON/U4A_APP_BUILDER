@@ -27,6 +27,8 @@
             "use strict";
 
             var oAPP = {};
+            oAPP.CREATE_KEY = "";
+            oAPP.CREATE_APP = "";
 
             oAPP.getRandomKey = (num) => {
 
@@ -220,6 +222,8 @@
                                                         oAPP.onFileSizeExceed(oEvent);
                                                     },
                                                     beforeDialogOpen: () => {
+
+                                                        oAPP.setBusyDialogTxt("");
                                                         oAPP.setBusy(true);
                                                     },
                                                     afterDialogClose: (oEvent) => {
@@ -251,6 +255,7 @@
                                                         oAPP.onFileSizeExceed(oEvent);
                                                     },
                                                     beforeDialogOpen: () => {
+                                                        oAPP.setBusyDialogTxt("");
                                                         oAPP.setBusy(true);
                                                     },
                                                     afterDialogClose: (oEvent) => {
@@ -415,7 +420,8 @@
                 if (!oCoreModel) {
                     return;
                 }
-
+                
+                oAPP.setBusyDialogTxt("");
                 oAPP.setBusy(true);
 
                 let oModelData = oCoreModel.getProperty("/");
@@ -435,11 +441,10 @@
                 // Busy Dialog에 상태 텍스트를 보여준다.
                 oAPP.setBusyDialogTxt("앱 빌드 요청...");
 
-                let sPath = "/create";
+                let sPath = "/create",
+                    sRandomKey = oAPP.getRandomKey(50),
+                    oForm = new FormData();
 
-                let sRandomKey = oAPP.getRandomKey(50);
-
-                let oForm = new FormData();
                 oForm.append("ISDBG", oModelData.ISDBG == true ? "X" : "");
                 oForm.append("APPID", oModelData.APPID);
                 oForm.append("APPDESC", oModelData.APPDESC);
@@ -452,10 +457,11 @@
                 oForm.append("INTRO", oModelData.INTRO || "");
                 oForm.append("KEY", sRandomKey);
 
+                oAPP.CREATE_KEY = sRandomKey;
+                oAPP.CREATE_APP = oModelData.APPID;
+
                 let WS = new WebSocket("ws://u4arnd.iptime.org:9401/U4A/appbuild", [sRandomKey]);
                 WS.onopen = function (e) {
-
-                    debugger;
 
                     //실제 생성 서버 요청을 여기서 
                     oAPP.sendAjax(sPath, oForm);
@@ -472,18 +478,13 @@
 
                 WS.onerror = (e) => {
 
-                    debugger;
-
                     oAPP.setBusyDialogTxt(e.toString());
+
+                    oAPP.onAppClose();
 
                 };
 
-                // oAPP.EVENTSOURCE = new EventSource(`/create?KEY=${sRandomKey}`);
-                // oAPP.EVENTSOURCE.onmessage = function(e) {
-
-                //     oAPP.setBusyDialogTxt(e.data);
-
-                // };
+                oAPP.WS = WS;
 
             }; // end of oAPP.onBuild
 
@@ -707,16 +708,31 @@
                 var xhr = new XMLHttpRequest();
 
                 xhr.onerror = () => {
-                    // oAPP.EVENTSOURCE.close();
-                    alert("ajax error!");
+
+                    oAPP.onAppClose();
+
+                    oAPP.onMessageBoxError("network connection fail!");
+
+                    oAPP.setBusy(false);
                 };
 
                 xhr.onabort = (event) => {
+
+                    oAPP.onAppClose();
+
+                    oAPP.setBusy(false);
+
                     alert("ajax abort!");
                 };
 
-                xhr.ontimeout = (event) => { 
+                xhr.ontimeout = (event) => {
+
+                    oAPP.onAppClose();
+
+                    oAPP.setBusy(false);
+
                     alert("timeout!");
+
                 };
 
                 xhr.onreadystatechange = function () {
@@ -739,7 +755,7 @@
 
                                     oAPP.onMessageBoxError(oRet.RTMSG);
 
-                                    // oAPP.EVENTSOURCE.close();
+                                    oAPP.onAppClose();
 
                                     return;
                                 }
@@ -770,15 +786,23 @@
 
                         oAPP.setBusy(false);
 
-                        // oAPP.EVENTSOURCE.close();
+                        oAPP.onAppClose();
 
                     }
 
                 };
 
-                xhr.responseType = "blob";
-                xhr.open("POST", pUrl, true);
-                xhr.send(pFormData);
+                try {
+
+                    xhr.responseType = "blob";
+                    xhr.open("POST", pUrl, true);
+                    xhr.send(pFormData);
+
+                } catch (error) {
+
+                    oAPP.onAppClose();
+
+                }
 
             }; // end of oAPP.sendAjax
 
@@ -821,13 +845,6 @@
 
                 oAPP.BUSYDIALOG.close();
 
-                // if (bIsBusy) {
-                //     sap.ui.core.BusyIndicator.show(0);
-                //     return;
-                // }
-
-                // sap.ui.core.BusyIndicator.hide();
-
             };
 
             // Busy Dialog Text 변경
@@ -852,6 +869,41 @@
 
                 oDialogModel.setProperty("/BUSY_TXT", sText);
 
+            }; // end of oAPP.setBusyDialogTxt
+
+            oAPP.onClientWebSocketClose = () => {
+
+                // 클라이언트 웹소켓을 죽인다.
+                if (oAPP.WS) {
+                    oAPP.WS.close();
+                }
+
+            };
+
+            // 서버의 워커를 죽인다.
+            oAPP.onServerWorkerClose = () => {
+
+                let sUrl = "&PARAM1&",
+                    sServerUrl = `http://${sUrl}/createKill?KEY=${oAPP.CREATE_KEY}&APPID=${oAPP.CREATE_APP}`;
+                
+                navigator.sendBeacon(sServerUrl);
+
+                delete oAPP.CREATE_KEY;
+                delete oAPP.CREATE_APP;
+
+                var until = new Date().getTime() + 1000;
+                while (new Date().getTime() < until);
+
+            };
+
+            oAPP.onAppClose = () => {
+
+                // server Worker Close();
+                oAPP.onServerWorkerClose();
+
+                // Client SocketClose
+                oAPP.onClientWebSocketClose();
+
             };
 
             document.addEventListener("DOMContentLoaded", () => {
@@ -859,6 +911,15 @@
                 oAPP.onStart();
 
             });
+
+            window.onbeforeunload = (e) => {
+
+                // 윈도우 창을 강제 종료 시킬 때 서버 워커를 죽인다.
+                oAPP.onServerWorkerClose();
+
+                return false;
+
+            };
 
             window.oAPP = oAPP;
 
