@@ -170,11 +170,18 @@ self.onmessage = (oEvent) => {
                 }, (err, data) => {
 
                     if (err) {
-                        resolve({ RETCD: "E", RTMSG: err.toString() });
+                        resolve({
+                            RETCD: "E",
+                            RTMSG: err.toString()
+                        });
                         return;
                     }
 
-                    resolve({ RETCD: "S", RTMSG: "", RTDATA: data });
+                    resolve({
+                        RETCD: "S",
+                        RTMSG: "",
+                        RTDATA: data
+                    });
 
                 });
 
@@ -190,11 +197,18 @@ self.onmessage = (oEvent) => {
                 FS.unlink(sPath, (err) => {
 
                     if (err) {
-                        resolve({ RETCD: "E", RTMSG: err.toString() });
+                        resolve({
+                            RETCD: "E",
+                            RTMSG: err.toString()
+                        });
                         return;
                     }
 
-                    resolve({ RETCD: "S", RTMSG: "", RTDATA: "" });
+                    resolve({
+                        RETCD: "S",
+                        RTMSG: "",
+                        RTDATA: ""
+                    });
 
                 });
 
@@ -210,11 +224,18 @@ self.onmessage = (oEvent) => {
                 FS.writeFile(sPath, sTxt, function (err) {
 
                     if (err) {
-                        resolve({ RETCD: "E", RTMSG: err.toString() });
+                        resolve({
+                            RETCD: "E",
+                            RTMSG: err.toString()
+                        });
                         return;
                     }
 
-                    resolve({ RETCD: "S", RTMSG: "", RTDATA: "" });
+                    resolve({
+                        RETCD: "S",
+                        RTMSG: "",
+                        RTDATA: ""
+                    });
 
                 });
 
@@ -463,9 +484,9 @@ self.onmessage = (oEvent) => {
                 const FS = require('fs-extra');
 
                 var oFields = oFormData.FIELDS,
-                oFiles = oFormData.FILES,
-                sAppId = oFields.APPID;
-                
+                    oFiles = oFormData.FILES,
+                    sAppId = oFields.APPID;
+
                 var oIntroImg = oFiles["INTRO"];
 
                 if (!oIntroImg) {
@@ -804,8 +825,6 @@ self.onmessage = (oEvent) => {
 
         oAPP.onStart = async () => {
 
-            debugger;
-
             oReturnMsg.RETCD = "M";
             oReturnMsg.RTMSG = `[${sAppId}] APP 설치 폴더 생성중..`;
 
@@ -897,13 +916,20 @@ self.onmessage = (oEvent) => {
 
                     if (err) {
 
-                        resolve({ RETCD: "E", RTMSG: err.toString() });
+                        resolve({
+                            RETCD: "E",
+                            RTMSG: err.toString()
+                        });
 
                         return;
 
                     }
 
-                    resolve({ RETCD: "S", RTMSG: "", RTDATA: data });
+                    resolve({
+                        RETCD: "S",
+                        RTMSG: "",
+                        RTDATA: data
+                    });
 
                 });
 
@@ -921,11 +947,17 @@ self.onmessage = (oEvent) => {
 
                 FS.copy(sSourcePath, sTargetPath).then(function () {
 
-                    resolve({ RETCD: "S", RTMSG: "" });
+                    resolve({
+                        RETCD: "S",
+                        RTMSG: ""
+                    });
 
                 }).catch(function (err) {
 
-                    resolve({ RETCD: "E", RTMSG: err.toString() });
+                    resolve({
+                        RETCD: "E",
+                        RTMSG: err.toString()
+                    });
 
                 });
 
@@ -945,7 +977,10 @@ self.onmessage = (oEvent) => {
 
                     if (err) {
 
-                        resolve({ RETCD: "E", RTMSG: err.toString() });
+                        resolve({
+                            RETCD: "E",
+                            RTMSG: err.toString()
+                        });
 
                         return;
                     }

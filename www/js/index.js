@@ -58,7 +58,13 @@
         await AUTOUPDATE.checkUpdate();
     }
 
-    function 조또마떼() { return new Promise((resolve) => { setTimeout(() => { resolve(); }, 3000); }); }
+    function 조또마떼() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, 3000);
+        });
+    }
 
     /************************************************************************************************
      * server start..
@@ -151,9 +157,9 @@
                     oAPP.onPingCheck(req, res);
                     break;
 
-                // 앱 생성시 필요한 정보들 구하기
-                // 예) app version 정보,
-                //     plugin 정보 등.
+                    // 앱 생성시 필요한 정보들 구하기
+                    // 예) app version 정보,
+                    //     plugin 정보 등.
                 case "/getAppMetadata":
                     oAPP.getAppMetadata(req, res);
                     break;
@@ -1180,12 +1186,10 @@
 
                 return;
             }
-         
-            let serverip = SERVER_IP,
-                serverport = SERVER_PORT,
-                serverurl = serverip + ":" + serverport;
 
-            let sHtmlData = data;
+            let serverurl = req.headers.host,
+                sHtmlData = data;
+
             sHtmlData = sHtmlData.replace(/&PARAM1&/g, serverurl);
 
             res.write(sHtmlData.toString());
@@ -1396,9 +1400,71 @@
 
     }
 
+    oAPP.onFsReadFile = (sIndexJsPath) => {
+
+        return new Promise((resolve) => {
+
+            FS.readFile(sIndexJsPath, {
+                encoding: "utf-8"
+            }, (err, data) => {
+
+                if (err) {
+                    resolve({
+                        RETCD: "E"
+                    });
+                }
+
+                resolve({
+                    RETCD: "S",
+                    RTDATA: data
+                });
+
+
+            });
+
+        });
+
+    };
+
     oAPP._onCreateApp = async function (req, res, oFormData) {
 
-        // 설정된 세션 timeout 시간 도래 여부를 체크하기 위한 워커 생성
+        debugger;
+
+        var FIELDS = oFormData.FIELDS,
+            FILES = oFormData.FILES,
+            KEY = FIELDS.KEY;
+
+        let oShortcut = FILES["SHORTCUT"],
+            oIntro = FILES["INTRO"];
+
+        if (oShortcut) {
+
+            const shortcutfilePath = oShortcut.filepath;
+
+            delete FILES.SHORTCUT;
+            FILES.SHORTCUT = {};
+            FILES.SHORTCUT.filepath = shortcutfilePath;
+
+        }
+
+        if (oIntro) {
+
+            const introFilePath = oIntro.filepath;
+
+            delete FILES.INTRO;
+            FILES.INTRO = {};
+            FILES.INTRO.filepath = introFilePath;
+
+        }
+
+        var oSendData = {
+            APPPATH: APPPATH,
+            PATHINFO: PATHINFO,
+            oFormData: oFormData,
+            sRandomKey: KEY
+        }
+
+        // 앱 생성 워커 실행
         let sWorkerPath = PATH.join(JS_ROOT_PATH, "appCreateWorker.js"),
             oWorker = new Worker(sWorkerPath);
 
@@ -1436,21 +1502,44 @@
 
         }; // end of oWorker.onerror
 
-        let FIELDS = oFormData.FIELDS,
-            KEY = FIELDS.KEY;
+        // let FIELDS = oFormData.FIELDS,
+        //     KEY = FIELDS.KEY;
 
-        let oSendData = {
-            APPPATH: APPPATH,
-            PATHINFO: PATHINFO,
-            oFormData: oFormData,
-            sRandomKey: KEY
-        }
+        // let oSendData = {
+        //     APPPATH: APPPATH,
+        //     PATHINFO: PATHINFO,
+        //     oFormData: oFormData,
+        //     sRandomKey: KEY
+        // }
+
+        oAPP.aWorker.push({
+            KEY: KEY,
+            WORKER: oWorker
+        });
 
         oWorker.postMessage(oSendData);
 
-        oAPP.aWorker.push({ KEY: KEY, WORKER: oWorker });
-
         // return;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
         // oAPP.writeMsg("플러그인 복사중...");
