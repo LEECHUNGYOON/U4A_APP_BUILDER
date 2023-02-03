@@ -8,7 +8,7 @@
     <meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
 
-    <script id="sap-ui-bootstrap" src="https://openui5.hana.ondemand.com/resources/sap-ui-core.js"
+    <script id="sap-ui-bootstrap" src="https://sapui5.hana.ondemand.com/1.107.1/resources/sap-ui-core.js"
         data-sap-ui-language="EN" data-sap-ui-preload="async" data-sap-ui-compatversion="edge"
         data-sap-ui-theme="sap_fiori_3_dark" data-sap-ui-libs="sap.m" data-sap-ui-noduplicateids="true">
         </script>
@@ -28,7 +28,7 @@
 
             var oAPP = {};
             oAPP.CREATE_KEY = "";
-            oAPP.CREATE_APP = "";
+            oAPP.CREATE_APP = "";          
 
             oAPP.getRandomKey = (num) => {
 
@@ -109,10 +109,6 @@
                 // Busy dialog 생성
                 oAPP.BUSYDIALOG = new sap.m.BusyDialog({
                     text: "{/BUSY_TXT}",
-                    // showCancelButton: true,
-                    // close: function () {
-                    //     XHR.abort();
-                    // }
                 });
 
             }; // end of oAPP.onInitRendering
@@ -172,13 +168,23 @@
                                             new sap.ui.layout.form.FormElement({
                                                 label: new sap.m.Label({
                                                     design: sap.m.LabelDesign.Bold,
-                                                    text: "Debug Mode?"
+                                                    text: "Mode?"
                                                 }),
-                                                fields: new sap.m.CheckBox({
-                                                    selected: "{/ISDBG}",
-                                                    enabled: false
+                                                fields: new sap.m.HBox({
+                                                    items: [
+                                                        new sap.m.CheckBox({
+                                                            text: "Is Dev?",
+                                                            selected: "{/ISDEV}",
+                                                            enabled: true
+                                                        }).addStyleClass("sapUiSmallMarginEnd"),
+                                                        new sap.m.CheckBox({
+                                                            text: "Is Debug?",
+                                                            selected: "{/ISDBG}",
+                                                            enabled: false
+                                                        })
+                                                    ]
                                                 })
-                                            }),
+                                            }),                                           
 
                                             new sap.ui.layout.form.FormElement({
                                                 label: new sap.m.Label({
@@ -347,6 +353,7 @@
             oAPP.onInitModeling = () => {
 
                 oAPP.oInitModelData = {
+                    ISDEV: true,          
                     ISDBG: true,
                     APPID: "",
                     APPDESC: "",
@@ -368,6 +375,7 @@
                 };
 
                 oAPP.oSampleData = {
+                    ISDEV: true,                                  
                     ISDBG: true,
                     APPID: "YTEST01",
                     APPDESC: "테스트입니다",
@@ -393,7 +401,7 @@
                 let oJsonModel = new sap.ui.model.json.JSONModel();
                 oJsonModel.setData(oInitModelData);
 
-                sap.ui.getCore().setModel(oJsonModel);
+                sap.ui.getCore().setModel(oJsonModel);                
 
             }; // end of oAPP.onInitModeling
 
@@ -420,7 +428,7 @@
                 if (!oCoreModel) {
                     return;
                 }
-                
+
                 oAPP.setBusyDialogTxt("");
                 oAPP.setBusy(true);
 
@@ -446,6 +454,7 @@
                     oForm = new FormData();
 
                 oForm.append("ISDBG", oModelData.ISDBG == true ? "X" : "");
+                oForm.append("ISDEV", oModelData.ISDEV == true ? "X" : "");                
                 oForm.append("APPID", oModelData.APPID);
                 oForm.append("APPDESC", oModelData.APPDESC);
                 oForm.append("PROTO", oModelData.PROTO);
@@ -881,11 +890,12 @@
             };
 
             // 서버의 워커를 죽인다.
-            oAPP.onServerWorkerClose = () => {
+            oAPP.onServerWorkerClose = (isBeforeUnload) => {
 
                 let sUrl = "&PARAM1&",
-                    sServerUrl = `http://${sUrl}/createKill?KEY=${oAPP.CREATE_KEY}&APPID=${oAPP.CREATE_APP}`;
-                
+                    bIsBeforeUnload = isBeforeUnload || "",
+                    sServerUrl = `http://${sUrl}/createKill?KEY=${oAPP.CREATE_KEY}&APPID=${oAPP.CREATE_APP}&ISDELETE=${bIsBeforeUnload}`;
+
                 navigator.sendBeacon(sServerUrl);
 
                 delete oAPP.CREATE_KEY;
@@ -915,7 +925,7 @@
             window.onbeforeunload = (e) => {
 
                 // 윈도우 창을 강제 종료 시킬 때 서버 워커를 죽인다.
-                oAPP.onServerWorkerClose();
+                oAPP.onServerWorkerClose('X');
 
                 return false;
 

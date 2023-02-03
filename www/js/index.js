@@ -58,14 +58,6 @@
         await AUTOUPDATE.checkUpdate();
     }
 
-    function 조또마떼() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve();
-            }, 3000);
-        });
-    }
-
     /************************************************************************************************
      * server start..
      ************************************************************************************************/
@@ -157,9 +149,9 @@
                     oAPP.onPingCheck(req, res);
                     break;
 
-                    // 앱 생성시 필요한 정보들 구하기
-                    // 예) app version 정보,
-                    //     plugin 정보 등.
+                // 앱 생성시 필요한 정보들 구하기
+                // 예) app version 정보,
+                //     plugin 정보 등.
                 case "/getAppMetadata":
                     oAPP.getAppMetadata(req, res);
                     break;
@@ -255,10 +247,50 @@
 
     } // end of sendSSE
 
+    oAPP.onFsFileRemove = (sPath) => {
+
+        return new Promise((resolve) => {
+
+            const FS = require("fs");
+
+            let options = {
+                force: true,
+                maxRetries: 3,
+                recursive: true,
+                retryDelay: 500
+            };
+
+            FS.rm(sPath, options, (err) => {
+
+                if (err) {
+                    console.log(err.toString());
+                }
+
+                resolve();
+            });
+
+        });
+
+    };
+
     // 워커를 죽인다.
-    oAPP.onCreateKill = (req, res) => {
+    oAPP.onCreateKill = async (req, res) => {
+
+        // 워커를 죽이기 위한 키를 찾는다.
+        var url = require('url'),
+            queryData = url.parse(req.url, true).query,
+            sKey = queryData.KEY,
+            sAppID = queryData.APPID,
+            sIsDelete = queryData.ISDELETE;
+
+        // 전달받은 키 값이 없다면 빠져나감.
+        if (!sKey || sKey == "") {
+            res.end();
+            return;
+        }
 
         if (Array.isArray(oAPP.aWorker) == false) {
+            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -268,17 +300,7 @@
             iWorkLength = aWorker.length;
 
         if (iWorkLength == 0) {
-            res.end();
-            return;
-        }
-
-        // 워커를 죽이기 위한 키를 찾는다.
-        var url = require('url'),
-            queryData = url.parse(req.url, true).query,
-            sKey = queryData.KEY,
-            sAppID = queryData.APPID;
-
-        if (!sKey || sKey == "") {
+            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -286,12 +308,14 @@
         // 키값에 맞는 워커를 찾는다.
         let iFound = aWorker.findIndex(elem => elem.KEY == sKey);
         if (iFound == -1) {
+            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
 
         let oWorker = aWorker[iFound].WORKER;
         if (!oWorker) {
+            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -299,6 +323,8 @@
         // 찾은 워커를 죽인다
         oWorker.terminate();
 
+        oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
+        
         // 찾은 워커를 삭제한다.
         aWorker = aWorker.splice(iFound, 1);
 
@@ -308,6 +334,56 @@
         oAPP.writeMsg(`${sAppID} : 생성 종료!!`);
 
     }; // end of oAPP.onCreateKill
+
+
+    // 플러그인, 앱 빌드 폴더 삭제
+    oAPP.onRemovePluginBuildFolders = (sKey, bIsBuildFolderRemove) => {
+
+        return new Promise(async (resolve) => {
+
+            await oAPP.onRemovePluginFolder(sKey); // 플러그인 폴더 삭제
+
+            if (bIsBuildFolderRemove == "X") {
+                await oAPP.onRemoveAppBuildFolder(sKey); // 앱 빌드 폴더 삭제     
+            }
+
+            resolve();
+
+        });
+
+    };
+
+    oAPP.onRemovePluginFolder = (sKey) => {
+
+        return new Promise(async (resolve) => {
+
+            // 플러그인이 존재 하는지 확인하고 있으면 삭제
+            let sPluginFolderPath = PATHINFO.PLUGIN_PATH + "\\" + sKey;
+            if (FS.existsSync(sPluginFolderPath)) {
+                await oAPP.onFsFileRemove(sPluginFolderPath);
+            }
+
+            resolve();
+
+        });
+
+    };
+
+    oAPP.onRemoveAppBuildFolder = (sKey) => {
+
+        return new Promise(async (resolve) => {
+
+            // 앱 빌드 폴더도 존재 하는지 확인하고 있으면 삭제
+            let sAppBuildPath = PATHINFO.U4A_BUILD_PATH + "\\" + sKey;
+            if (FS.existsSync(sAppBuildPath)) {
+                await oAPP.onFsFileRemove(sAppBuildPath);
+            }
+
+            resolve();
+
+        });
+
+    };
 
     /************************************************************************
      * 플러그인 목록 업데이트 하기  
@@ -1167,7 +1243,45 @@
     /************************************************************************************************
      * 앱 생성 페이지 
      ************************************************************************************************/
-    oAPP.onIndexHtml = function (req, res) {
+    oAPP.onIndexHtml = async function (req, res) {
+
+        const MPLUGININFO = require(PATH.join(APPPATH, "js/mobilePlugin.js"));
+
+        let oResult = await MPLUGININFO.getPluginFolderPath();
+        if (oResult.RETCD == "E") {
+
+            // response error
+            _res_error(res, JSON.stringify({
+                "RETCD": "E",
+                "RTMSG": oResult.RTMSG
+            }));
+
+            return;
+
+        }
+
+        // 버전 목록을 구한다.
+        let aVer = oResult.RTDATA,
+            iVerLength = aVer.length,
+            aVerList = [];
+
+        for (var i = 0; i < iVerLength; i++) {
+
+            var sVer = aVer[i];
+
+            if (sVer.endsWith("dev")) {
+                continue;
+            }
+
+            aVerList.push(sVer);
+        }
+
+        // 오름차순으로 정렬
+        aVerList.sort(function (a, b) {
+            if (a < b) return 1;
+            if (a > b) return -1;
+            if (a === b) return 0;
+        });
 
         const
             FS = require('fs-extra'),
@@ -1191,6 +1305,7 @@
                 sHtmlData = data;
 
             sHtmlData = sHtmlData.replace(/&PARAM1&/g, serverurl);
+            sHtmlData = sHtmlData.replace(/&PARAM2&/g, aVerList);
 
             res.write(sHtmlData.toString());
             res.end();
@@ -1359,7 +1474,7 @@
 
     }; // end of oAPP.onCheckAppInfo
 
-    function onWorkerMessage(req, res, oEvent, oWorker, oFormData) {
+    async function onWorkerMessage(req, res, oEvent, oWorker, oFormData) {
 
         let oResData = oEvent.data,
             FIELDS = oFormData.FIELDS,
@@ -1373,6 +1488,9 @@
             _res_error(res, JSON.stringify(oResData));
 
             oWorker.terminate();
+
+            await oAPP.onRemovePluginFolder(KEY); // 플러그인 폴더 삭제
+            await oAPP.onRemoveAppBuildFolder(KEY); // 앱 빌드 폴더 삭제    
 
             return;
         }
@@ -1394,6 +1512,9 @@
             oAPP.onRespBuildApp(req, res, oResData.oFormData, oResData.sRandomKey);
 
             oWorker.terminate();
+
+            await oAPP.onRemovePluginFolder(KEY); // 플러그인 폴더 삭제
+            // await oAPP.onRemoveAppBuildFolder(KEY); // 앱 빌드 폴더 삭제    
 
             return;
         }
