@@ -1464,7 +1464,7 @@
             sRandomKey: KEY
         }
 
-        // 설정된 세션 timeout 시간 도래 여부를 체크하기 위한 워커 생성
+        // 앱 생성 워커 실행
         let sWorkerPath = PATH.join(JS_ROOT_PATH, "appCreateWorker.js"),
             oWorker = new Worker(sWorkerPath);
 
