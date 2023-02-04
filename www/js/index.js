@@ -1,4 +1,4 @@
-(async function () {
+(async function() {
     "use strict";
 
     /************************************************************************************************
@@ -61,7 +61,7 @@
     /************************************************************************************************
      * server start..
      ************************************************************************************************/
-    oAPP.onStart = async function () {
+    oAPP.onStart = async function() {
 
         CURRWIN.show();
 
@@ -103,7 +103,7 @@
             oAPP.writeMsg('request timed out');
         });
 
-        server.listen(SERVER_PORT, SERVER_IP, function (e) {
+        server.listen(SERVER_PORT, SERVER_IP, function(e) {
 
             oAPP.writeMsg('----------- 서버 시작 ----------- : ' + SERVER_IP + ":" + SERVER_PORT);
 
@@ -121,7 +121,7 @@
         });
 
         //connection 서버에 접속한자가 누군지 안다.
-        server.on('connection', function (socket) { //클라이언트 정보를 socket이 갖고있다.
+        server.on('connection', function(socket) { //클라이언트 정보를 socket이 갖고있다.
 
             oAPP.writeMsg('클라이언트가 접속' +
                 socket.remoteAddress + ',' +
@@ -129,13 +129,13 @@
 
         });
 
-        server.on('error', function (e) {
+        server.on('error', function(e) {
 
             oAPP.writeMsg(e);
 
         });
 
-        server.on('request', function (req, res) {
+        server.on('request', function(req, res) {
 
             if (req.url.startsWith("/createKill")) {
 
@@ -149,9 +149,9 @@
                     oAPP.onPingCheck(req, res);
                     break;
 
-                // 앱 생성시 필요한 정보들 구하기
-                // 예) app version 정보,
-                //     plugin 정보 등.
+                    // 앱 생성시 필요한 정보들 구하기
+                    // 예) app version 정보,
+                    //     plugin 정보 등.
                 case "/getAppMetadata":
                     oAPP.getAppMetadata(req, res);
                     break;
@@ -289,8 +289,10 @@
             return;
         }
 
+        // 플러그인, 빌드폴더를 삭제한다.
+        oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
+
         if (Array.isArray(oAPP.aWorker) == false) {
-            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -300,7 +302,6 @@
             iWorkLength = aWorker.length;
 
         if (iWorkLength == 0) {
-            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -308,14 +309,12 @@
         // 키값에 맞는 워커를 찾는다.
         let iFound = aWorker.findIndex(elem => elem.KEY == sKey);
         if (iFound == -1) {
-            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
 
         let oWorker = aWorker[iFound].WORKER;
         if (!oWorker) {
-            oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
             res.end();
             return;
         }
@@ -323,8 +322,6 @@
         // 찾은 워커를 죽인다
         oWorker.terminate();
 
-        oAPP.onRemovePluginBuildFolders(sKey, sIsDelete);
-        
         // 찾은 워커를 삭제한다.
         aWorker = aWorker.splice(iFound, 1);
 
@@ -351,8 +348,9 @@
 
         });
 
-    };
+    }; // end of oAPP.onRemovePluginBuildFolders
 
+    // 플러그인 폴더를 삭제한다.
     oAPP.onRemovePluginFolder = (sKey) => {
 
         return new Promise(async (resolve) => {
@@ -367,8 +365,9 @@
 
         });
 
-    };
+    }; // end of oAPP.onRemovePluginFolder
 
+    // 빌드한 앱의 폴더를 삭제한다.
     oAPP.onRemoveAppBuildFolder = (sKey) => {
 
         return new Promise(async (resolve) => {
@@ -383,12 +382,12 @@
 
         });
 
-    };
+    }; // end of oAPP.onRemoveAppBuildFolder
 
     /************************************************************************
      * 플러그인 목록 업데이트 하기  
      ************************************************************************/
-    oAPP.setUpdatePluginList = function (req, res) {
+    oAPP.setUpdatePluginList = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -462,7 +461,7 @@
 
     }; // end of oAPP.setUpdatePluginList
 
-    oAPP._setUpdatePluginList = function (req, res, oFormData) {
+    oAPP._setUpdatePluginList = function(req, res, oFormData) {
 
         var oFields = oFormData["FIELDS"];
 
@@ -531,7 +530,7 @@
      *  예) app version 정보,
      * plugin 정보 등.
      ************************************************************************/
-    oAPP.getAppMetadata = function (req, res) {
+    oAPP.getAppMetadata = function(req, res) {
 
         // 버전 정보 구하기.
         var oResult = oAPP.getVersionList();
@@ -577,7 +576,7 @@
     }; // end of oAPP.getAppMetadata
 
     // update
-    oAPP.onUpdateWWW = function (req, res) {
+    oAPP.onUpdateWWW = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -651,7 +650,7 @@
 
     }; // end of oAPP.onUpdateWWW
 
-    oAPP._onUpdateWWW = function (req, res, oFormData) {
+    oAPP._onUpdateWWW = function(req, res, oFormData) {
 
         var oFields = oFormData["FIELDS"],
             oFiles = oFormData["FILES"];
@@ -716,7 +715,7 @@
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sVer;
 
                 // 압축 풀기
-                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
+                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function() {
 
                     // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
                     var sDbgPath = PATHINFO.U4A_WWW_DBG + "\\" + sVer,
@@ -731,7 +730,7 @@
 
                     FS.copy(sExtractFolderPath, sRelPath, {
                         overwrite: true
-                    }).then(function () {
+                    }).then(function() {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
@@ -750,7 +749,7 @@
 
                         res.end(JSON.stringify(oRetCod));
 
-                    }).catch(function (err) {
+                    }).catch(function(err) {
 
                         // response error
                         _res_error(res, JSON.stringify({
@@ -769,14 +768,14 @@
     }; // end of oAPP._onUpdateWWW
 
     // 압축 풀기
-    oAPP.onExtractZipFile = function (req, res, sSource, sTarget, fnSuccess) {
+    oAPP.onExtractZipFile = function(req, res, sSource, sTarget, fnSuccess) {
 
         // 압축을 푼다.
-        ZIP.extract(sSource, sTarget).then(function () {
+        ZIP.extract(sSource, sTarget).then(function() {
 
             fnSuccess();
 
-        }).catch(function (err) {
+        }).catch(function(err) {
 
             // response error
             _res_error(res, JSON.stringify({
@@ -789,7 +788,7 @@
     }; // end of oAPP.onExtractZipFile
 
     // 신규버전 생성
-    oAPP.addNewVersion = function (req, res) {
+    oAPP.addNewVersion = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -864,7 +863,7 @@
     }; // end of oAPP.addNewVersion
 
     // 신규버전 생성
-    oAPP._addNewVersion = function (res, req, oFormData) {
+    oAPP._addNewVersion = function(res, req, oFormData) {
 
         // 마지막 버전을 구한다.
         var sLastVer = oAPP.getLastVersion();
@@ -920,7 +919,7 @@
                 var sExtractFolderPath = PATHINFO.TEMP_PATH + "\\" + sNewVer;
 
                 // 압축을 푼다.
-                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function () {
+                oAPP.onExtractZipFile(req, res, sFileName, sExtractFolderPath, function() {
 
                     // 신규 추가 버전 파일을 debug 폴더에 복사한다.
                     var sDebugPath = PATHINFO.U4A_WWW_DBG + "\\" + sNewVer;
@@ -928,7 +927,7 @@
 
                     // temp -> PATHINFO.U4A_WWW 폴더에 복사한다.
                     var sTargetPath = PATHINFO.U4A_WWW_REL + "\\" + sNewVer;
-                    FS.copy(sExtractFolderPath, sTargetPath).then(function () {
+                    FS.copy(sExtractFolderPath, sTargetPath).then(function() {
 
                         // 압축 파일등을 삭제한다.
                         FS.removeSync(sFileName);
@@ -950,7 +949,7 @@
 
                         res.end(JSON.stringify(oRetCod));
 
-                    }).catch(function (err) {
+                    }).catch(function(err) {
 
                         // response error
                         _res_error(res, JSON.stringify({
@@ -968,7 +967,7 @@
 
     }; // end of oAPP._addNewVersion
 
-    oAPP.getLastVersion = function () {
+    oAPP.getLastVersion = function() {
 
         var aFolders = FS.readdirSync(PATHINFO.U4A_WWW_DBG),
             iFolderLengh = aFolders.length;
@@ -982,7 +981,7 @@
     };
 
     // 버전 리스트 구하기
-    oAPP.getVersionList = function () {
+    oAPP.getVersionList = function() {
 
         var oRetCod = {
             RETCD: "",
@@ -1006,7 +1005,7 @@
     }; // end of oAPP.getVersionList
 
     // 서버 연결 상태 확인
-    oAPP.onPingCheck = function (req, res) {
+    oAPP.onPingCheck = function(req, res) {
 
         var oRetCod = {
             RETCD: "",
@@ -1021,7 +1020,7 @@
     }; // end of oAPP.onPingCheck
 
     // www 원본 파일의 마지막 버전의 파일을 보낸다.
-    oAPP.getWWWFile = function (req, res) {
+    oAPP.getWWWFile = function(req, res) {
 
         const
             FORMIDABLE = require('formidable'),
@@ -1097,7 +1096,7 @@
     }; // end of oAPP.getWWWFile
 
     // WWW 파일을 구한다.
-    oAPP._getWWWFile = function (res, req, oFormData) {
+    oAPP._getWWWFile = function(res, req, oFormData) {
 
         var oFields = oFormData.FIELDS,
             sVer = oFields.VER,
@@ -1121,7 +1120,7 @@
             sTargetPath = PATHINFO.TEMP_PATH + "\\" + sFileName;
 
         // www 폴더를 압축한다.
-        zl.archiveFolder(sFolderPath, sTargetPath).then(function () {
+        zl.archiveFolder(sFolderPath, sTargetPath).then(function() {
 
             FS.readFile(sTargetPath, (err, data) => {
 
@@ -1151,7 +1150,7 @@
 
             });
 
-        }, function (err) {
+        }, function(err) {
 
             if (err) {
                 oAPP.writeMsg(err);
@@ -1172,7 +1171,7 @@
     /************************************************************************************************
      * 필수 폴더 존재 여부 확인
      ************************************************************************************************/
-    oAPP.onCheckRequireFolder = function () {
+    oAPP.onCheckRequireFolder = function() {
 
         return new Promise((resolve) => {
 
@@ -1243,7 +1242,7 @@
     /************************************************************************************************
      * 앱 생성 페이지 
      ************************************************************************************************/
-    oAPP.onIndexHtml = async function (req, res) {
+    oAPP.onIndexHtml = async function(req, res) {
 
         const MPLUGININFO = require(PATH.join(APPPATH, "js/mobilePlugin.js"));
 
@@ -1277,7 +1276,7 @@
         }
 
         // 오름차순으로 정렬
-        aVerList.sort(function (a, b) {
+        aVerList.sort(function(a, b) {
             if (a < b) return 1;
             if (a > b) return -1;
             if (a === b) return 0;
@@ -1288,7 +1287,7 @@
             sAppPath = APP.getAppPath(),
             sIndexHtmlUrl = PATH.join(sAppPath, "create.html");
 
-        FS.readFile(sIndexHtmlUrl, 'utf-8', function (err, data) {
+        FS.readFile(sIndexHtmlUrl, 'utf-8', function(err, data) {
 
             if (err) {
 
@@ -1315,14 +1314,14 @@
 
     }; // end of oAPP.onIndexHtml
 
-    oAPP.onErrorPage = function (req, res) {
+    oAPP.onErrorPage = function(req, res) {
 
         const
             FS = require('fs-extra'),
             sAppPath = APP.getAppPath(),
             sIndexHtmlUrl = PATH.join(sAppPath, "error.html");
 
-        FS.readFile(sIndexHtmlUrl, 'utf-8', function (err, data) {
+        FS.readFile(sIndexHtmlUrl, 'utf-8', function(err, data) {
 
             if (err) {
 
@@ -1342,7 +1341,7 @@
         });
     };
 
-    oAPP.onCreateApp = function (req, res) {
+    oAPP.onCreateApp = function(req, res) {
 
         if (req.method != "POST") {
 
@@ -1442,7 +1441,7 @@
     }; // end of oAPP.onCreateApp
 
     // 앱 정보 입력 체크
-    oAPP.onCheckAppInfo = function (oTargetData) {
+    oAPP.onCheckAppInfo = function(oTargetData) {
 
         /***********************************************************************************
          *  APP ID 체크
@@ -1490,7 +1489,7 @@
             oWorker.terminate();
 
             await oAPP.onRemovePluginFolder(KEY); // 플러그인 폴더 삭제
-            await oAPP.onRemoveAppBuildFolder(KEY); // 앱 빌드 폴더 삭제    
+            //await oAPP.onRemoveAppBuildFolder(KEY); // 앱 빌드 폴더 삭제    
 
             return;
         }
@@ -1547,7 +1546,7 @@
 
     };
 
-    oAPP._onCreateApp = async function (req, res, oFormData) {
+    oAPP._onCreateApp = async function(req, res, oFormData) {
 
         debugger;
 
@@ -1724,566 +1723,566 @@
 
     }; // end of oAPP._onCreateApp
 
-    // 최신버전의 파일 원본을 방금 생성한 폴더에 Overrite 한다.
-    oAPP.onCopyOrgToCrateApp = function (req, res, oFormData, sRandomKey) {
+    // // 최신버전의 파일 원본을 방금 생성한 폴더에 Overrite 한다.
+    // oAPP.onCopyOrgToCrateApp = function(req, res, oFormData, sRandomKey) {
 
-        const FS = require('fs-extra');
+    //     const FS = require('fs-extra');
 
-        var oFields = oFormData.FIELDS,
-            isDbg = oFields.ISDBG,
-            sWWWFolderPath = "";
+    //     var oFields = oFormData.FIELDS,
+    //         isDbg = oFields.ISDBG,
+    //         sWWWFolderPath = "";
 
-        if (isDbg == "X") {
-            sWWWFolderPath = PATHINFO.U4A_WWW_DBG;
-        } else {
-            sWWWFolderPath = PATHINFO.U4A_WWW_REL;
-        }
+    //     if (isDbg == "X") {
+    //         sWWWFolderPath = PATHINFO.U4A_WWW_DBG;
+    //     } else {
+    //         sWWWFolderPath = PATHINFO.U4A_WWW_REL;
+    //     }
 
-        // 원본 폴더 읽기
-        FS.readdir(sWWWFolderPath, (err, aFiles) => {
+    //     // 원본 폴더 읽기
+    //     FS.readdir(sWWWFolderPath, (err, aFiles) => {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            var iOrgFileLength = aFiles.length;
-            if (iOrgFileLength <= 0) {
+    //         var iOrgFileLength = aFiles.length;
+    //         if (iOrgFileLength <= 0) {
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": "복사할 파일 대상이 없습니다."
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": "복사할 파일 대상이 없습니다."
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            var sVerPath = aFiles[iOrgFileLength - 1], // 최신 버전 폴더명         
-                oFields = oFormData.FIELDS,
-                sAppId = oFields.APPID,
-                sFolderPath = PATHINFO.U4A_BUILD_PATH, // build 폴더 경로            
-                sSourcePath = sWWWFolderPath + "\\" + sVerPath, // 복사 대상 폴더 위치
-                sTargetPath = sFolderPath + "\\" + sRandomKey + "\\" + sAppId; // 붙여넣을 폴더 위치
+    //         var sVerPath = aFiles[iOrgFileLength - 1], // 최신 버전 폴더명         
+    //             oFields = oFormData.FIELDS,
+    //             sAppId = oFields.APPID,
+    //             sFolderPath = PATHINFO.U4A_BUILD_PATH, // build 폴더 경로            
+    //             sSourcePath = sWWWFolderPath + "\\" + sVerPath, // 복사 대상 폴더 위치
+    //             sTargetPath = sFolderPath + "\\" + sRandomKey + "\\" + sAppId; // 붙여넣을 폴더 위치
 
-            FS.copy(sSourcePath, sTargetPath).then(function () {
+    //         FS.copy(sSourcePath, sTargetPath).then(function() {
 
-                oAPP.writeMsg('file copy success!! -->' + sAppId);
+    //             oAPP.writeMsg('file copy success!! -->' + sAppId);
 
-                oAPP.BUSY_STATUS_TXT = `[${sAppId}] WWW 폴더 복사완료`;
+    //             oAPP.BUSY_STATUS_TXT = `[${sAppId}] WWW 폴더 복사완료`;
 
-                // index.js의 각종 파라미터들을 Replace 한다.
-                oAPP.onReplaceParamToIndexJs(req, res, oFormData, sRandomKey);
+    //             // index.js의 각종 파라미터들을 Replace 한다.
+    //             oAPP.onReplaceParamToIndexJs(req, res, oFormData, sRandomKey);
 
-            }).catch(function (err) {
+    //         }).catch(function(err) {
 
-                console.error(err);
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-            });
+    //         });
 
-        });
+    //     });
 
-    }; // end of oAPP.onCopyOrgToCrateApp
+    // }; // end of oAPP.onCopyOrgToCrateApp
 
-    // index.js의 각종 파라미터들을 Replace 한다.
-    oAPP.onReplaceParamToIndexJs = function (req, res, oFormData, sRandomKey) {
+    // // index.js의 각종 파라미터들을 Replace 한다.
+    // oAPP.onReplaceParamToIndexJs = function(req, res, oFormData, sRandomKey) {
 
-        const FS = require('fs-extra');
+    //     const FS = require('fs-extra');
 
-        var oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID,
-            oParams = {
-                PROTO: oFields["PROTO"],
-                HOST: oFields["HOST"],
-                PORT: oFields["PORT"],
-                PATH: oFields["PATH"],
-                PARAM: oFields["PARAM"]
-            };
+    //     var oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID,
+    //         oParams = {
+    //             PROTO: oFields["PROTO"],
+    //             HOST: oFields["HOST"],
+    //             PORT: oFields["PORT"],
+    //             PATH: oFields["PATH"],
+    //             PARAM: oFields["PARAM"]
+    //         };
 
-        var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
-            sIndexJsPath = sBuildAppPath + "\\www\\js\\index.js";
+    //     var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+    //         sIndexJsPath = sBuildAppPath + "\\www\\js\\index.js";
 
-        FS.readFile(sIndexJsPath, {
-            encoding: "utf-8"
-        }, (err, data) => {
+    //     FS.readFile(sIndexJsPath, {
+    //         encoding: "utf-8"
+    //     }, (err, data) => {
 
-            if (err) {
+    //         if (err) {
 
-                console.error(err);
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            var sIndexJsTxt = data;
+    //         var sIndexJsTxt = data;
 
-            sIndexJsTxt = sIndexJsTxt.replace(/&PARAM1&/g, oParams.PROTO);
-            sIndexJsTxt = sIndexJsTxt.replace(/&PARAM2&/g, oParams.HOST);
-            sIndexJsTxt = sIndexJsTxt.replace(/&PARAM3&/g, oParams.PORT);
-            sIndexJsTxt = sIndexJsTxt.replace(/&PARAM4&/g, oParams.PATH);
-            sIndexJsTxt = sIndexJsTxt.replace(/&PARAM5&/g, oParams.PARAM);
+    //         sIndexJsTxt = sIndexJsTxt.replace(/&PARAM1&/g, oParams.PROTO);
+    //         sIndexJsTxt = sIndexJsTxt.replace(/&PARAM2&/g, oParams.HOST);
+    //         sIndexJsTxt = sIndexJsTxt.replace(/&PARAM3&/g, oParams.PORT);
+    //         sIndexJsTxt = sIndexJsTxt.replace(/&PARAM4&/g, oParams.PATH);
+    //         sIndexJsTxt = sIndexJsTxt.replace(/&PARAM5&/g, oParams.PARAM);
 
-            FS.unlink(sIndexJsPath, (err) => {
-                if (err) {
-                    console.error(err);
+    //         FS.unlink(sIndexJsPath, (err) => {
+    //             if (err) {
+    //                 console.error(err);
 
-                    // response error
-                    _res_error(res, JSON.stringify({
-                        "RETCD": "E",
-                        "RTMSG": err.toString()
-                    }));
+    //                 // response error
+    //                 _res_error(res, JSON.stringify({
+    //                     "RETCD": "E",
+    //                     "RTMSG": err.toString()
+    //                 }));
 
-                    return;
-                }
+    //                 return;
+    //             }
 
-                FS.writeFile(sIndexJsPath, sIndexJsTxt, function (err) {
+    //             FS.writeFile(sIndexJsPath, sIndexJsTxt, function(err) {
 
-                    if (err) {
-                        console.error(err);
+    //                 if (err) {
+    //                     console.error(err);
 
-                        // response error
-                        _res_error(res, JSON.stringify({
-                            "RETCD": "E",
-                            "RTMSG": err.toString()
-                        }));
+    //                     // response error
+    //                     _res_error(res, JSON.stringify({
+    //                         "RETCD": "E",
+    //                         "RTMSG": err.toString()
+    //                     }));
 
-                        return;
-                    }
+    //                     return;
+    //                 }
 
-                    oAPP.writeMsg("index.js write 성공! ---->" + sAppId);
+    //                 oAPP.writeMsg("index.js write 성공! ---->" + sAppId);
 
-                    oAPP.BUSY_STATUS_TXT = `[${sAppId}] index.js write 성공`;
+    //                 oAPP.BUSY_STATUS_TXT = `[${sAppId}] index.js write 성공`;
 
-                    // config.xml replace
-                    oAPP.onReplaceParamToConfigXml(req, res, oFormData, sRandomKey);
+    //                 // config.xml replace
+    //                 oAPP.onReplaceParamToConfigXml(req, res, oFormData, sRandomKey);
 
-                }); // end of FS.writeFile
+    //             }); // end of FS.writeFile
 
-            }); // end of FS.unlink
+    //         }); // end of FS.unlink
 
-        }); // end of FS.readFile
+    //     }); // end of FS.readFile
 
-    }; // end of oAPP.onReplaceParamToIndexJs
+    // }; // end of oAPP.onReplaceParamToIndexJs
 
-    // config xml 수정
-    oAPP.onReplaceParamToConfigXml = function (req, res, oFormData, sRandomKey) {
+    // // config xml 수정
+    // oAPP.onReplaceParamToConfigXml = function(req, res, oFormData, sRandomKey) {
 
-        const FS = require('fs-extra');
+    //     const FS = require('fs-extra');
 
-        var oFields = oFormData.FIELDS,
-            oFiles = oFormData.FILES,
-            sAppId = oFields.APPID,
-            sAppDesc = oFields.APPDESC,
-            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
-            sConfigXmlPath = sBuildAppPath + "\\config.xml",
-            oReadFileOptions = {
-                encoding: "utf-8"
-            };
+    //     var oFields = oFormData.FIELDS,
+    //         oFiles = oFormData.FILES,
+    //         sAppId = oFields.APPID,
+    //         sAppDesc = oFields.APPDESC,
+    //         sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+    //         sConfigXmlPath = sBuildAppPath + "\\config.xml",
+    //         oReadFileOptions = {
+    //             encoding: "utf-8"
+    //         };
 
-        FS.readFile(sConfigXmlPath, oReadFileOptions, (err, data) => {
+    //     FS.readFile(sConfigXmlPath, oReadFileOptions, (err, data) => {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            var sXmlTextData = data;
+    //         var sXmlTextData = data;
 
-            sXmlTextData = sXmlTextData.replace(/&PARAM1&/g, "com." + sAppId + ".app");
-            sXmlTextData = sXmlTextData.replace(/&PARAM2&/g, sAppDesc);
+    //         sXmlTextData = sXmlTextData.replace(/&PARAM1&/g, "com." + sAppId + ".app");
+    //         sXmlTextData = sXmlTextData.replace(/&PARAM2&/g, sAppDesc);
 
-            FS.unlink(sConfigXmlPath, (err) => {
-                if (err) {
-                    console.error(err);
+    //         FS.unlink(sConfigXmlPath, (err) => {
+    //             if (err) {
+    //                 console.error(err);
 
-                    // response error
-                    _res_error(res, JSON.stringify({
-                        "RETCD": "E",
-                        "RTMSG": err.toString()
-                    }));
+    //                 // response error
+    //                 _res_error(res, JSON.stringify({
+    //                     "RETCD": "E",
+    //                     "RTMSG": err.toString()
+    //                 }));
 
-                    return;
-                }
+    //                 return;
+    //             }
 
-                FS.writeFile(sConfigXmlPath, sXmlTextData, function (err) {
+    //             FS.writeFile(sConfigXmlPath, sXmlTextData, function(err) {
 
-                    if (err) {
-                        console.error(err);
+    //                 if (err) {
+    //                     console.error(err);
 
-                        // response error
-                        _res_error(res, JSON.stringify({
-                            "RETCD": "E",
-                            "RTMSG": err.toString()
-                        }));
+    //                     // response error
+    //                     _res_error(res, JSON.stringify({
+    //                         "RETCD": "E",
+    //                         "RTMSG": err.toString()
+    //                     }));
 
-                        return;
-                    }
+    //                     return;
+    //                 }
 
-                    oAPP.writeMsg("config.xml write 성공! ---->" + sAppId);
+    //                 oAPP.writeMsg("config.xml write 성공! ---->" + sAppId);
 
-                    oAPP.BUSY_STATUS_TXT = `[${sAppId}] config.xml write 성공`;
+    //                 oAPP.BUSY_STATUS_TXT = `[${sAppId}] config.xml write 성공`;
 
-                    var oPromise1 = oAPP.onShortCutImageChange(oFormData, sRandomKey),
-                        oPromise2 = oAPP.onIntroImageChange(oFormData, sRandomKey);
+    //                 var oPromise1 = oAPP.onShortCutImageChange(oFormData, sRandomKey),
+    //                     oPromise2 = oAPP.onIntroImageChange(oFormData, sRandomKey);
 
-                    Promise.all([oPromise1, oPromise2]).then(() => {
+    //                 Promise.all([oPromise1, oPromise2]).then(() => {
 
-                        // android platform 추가하기
-                        oAPP.addPlatformAndroid(req, res, oFormData, sRandomKey);
+    //                     // android platform 추가하기
+    //                     oAPP.addPlatformAndroid(req, res, oFormData, sRandomKey);
 
-                    });
+    //                 });
 
-                }); // end of FS.writeFile
+    //             }); // end of FS.writeFile
 
-            }); // end of FS.unlink
+    //         }); // end of FS.unlink
 
-        }); // end of FS.readFile
+    //     }); // end of FS.readFile
 
-    }; // end of oAPP.onReplaceParamToConfigXml
+    // }; // end of oAPP.onReplaceParamToConfigXml
 
-    oAPP.onShortCutImageChange = function (oFormData, sRandomKey) {
+    // oAPP.onShortCutImageChange = function(oFormData, sRandomKey) {
 
-        return new Promise((resolve, reject) => {
+    //     return new Promise((resolve, reject) => {
 
-            const FS = require('fs-extra');
+    //         const FS = require('fs-extra');
 
-            var oFields = oFormData.FIELDS,
-                oFiles = oFormData.FILES,
-                sAppId = oFields.APPID;
+    //         var oFields = oFormData.FIELDS,
+    //             oFiles = oFormData.FILES,
+    //             sAppId = oFields.APPID;
 
-            var oShortCutImg = oFiles["SHORTCUT"];
+    //         var oShortCutImg = oFiles["SHORTCUT"];
 
-            if (!oShortCutImg) {
-                resolve('X');
-                return;
-            }
+    //         if (!oShortCutImg) {
+    //             resolve('X');
+    //             return;
+    //         }
 
-            var sShortCutImgPath = oShortCutImg.filepath;
+    //         var sShortCutImgPath = oShortCutImg.filepath;
 
-            FS.readFile(sShortCutImgPath, (err, data) => {
+    //         FS.readFile(sShortCutImgPath, (err, data) => {
 
-                if (err) {
-                    resolve('X');
-                    return;
-                }
+    //             if (err) {
+    //                 resolve('X');
+    //                 return;
+    //             }
 
-                var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
-                    sLogoImgPath = sBuildAppPath + "\\www\\img\\logo.png";
+    //             var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+    //                 sLogoImgPath = sBuildAppPath + "\\www\\img\\logo.png";
 
-                FS.unlink(sLogoImgPath, function (err) {
+    //             FS.unlink(sLogoImgPath, function(err) {
 
-                    if (err) {
-                        resolve('X');
-                        return;
-                    }
+    //                 if (err) {
+    //                     resolve('X');
+    //                     return;
+    //                 }
 
-                    FS.writeFile(sLogoImgPath, data, function (err) {
+    //                 FS.writeFile(sLogoImgPath, data, function(err) {
 
-                        if (err) {
-                            resolve('X');
-                            return;
-                        }
-                        oAPP.writeMsg("------- ShortCut Image Write Success!" + sAppId + "-----------");
+    //                     if (err) {
+    //                         resolve('X');
+    //                         return;
+    //                     }
+    //                     oAPP.writeMsg("------- ShortCut Image Write Success!" + sAppId + "-----------");
 
-                        oAPP.BUSY_STATUS_TXT = `[${sAppId}] ShortCut Image write 성공`;
+    //                     oAPP.BUSY_STATUS_TXT = `[${sAppId}] ShortCut Image write 성공`;
 
-                        resolve('X');
+    //                     resolve('X');
 
-                    }); // end of writeFile
+    //                 }); // end of writeFile
 
-                });
+    //             });
 
-            }); // end of FS.readFile
+    //         }); // end of FS.readFile
 
-        }); // end of Promise
+    //     }); // end of Promise
 
-    }; // end of oAPP.onShortCutImageChange
+    // }; // end of oAPP.onShortCutImageChange
 
-    oAPP.onIntroImageChange = function (oFormData, sRandomKey) {
+    // oAPP.onIntroImageChange = function(oFormData, sRandomKey) {
 
-        return new Promise((resolve, reject) => {
+    //     return new Promise((resolve, reject) => {
 
-            const FS = require('fs-extra');
+    //         const FS = require('fs-extra');
 
-            var oFields = oFormData.FIELDS,
-                oFiles = oFormData.FILES,
-                sAppId = oFields.APPID;
+    //         var oFields = oFormData.FIELDS,
+    //             oFiles = oFormData.FILES,
+    //             sAppId = oFields.APPID;
 
-            var oIntroImg = oFiles["INTRO"];
+    //         var oIntroImg = oFiles["INTRO"];
 
-            if (!oIntroImg) {
-                resolve('X');
-                return;
-            }
+    //         if (!oIntroImg) {
+    //             resolve('X');
+    //             return;
+    //         }
 
-            var sIntroImgPath = oIntroImg.filepath;
+    //         var sIntroImgPath = oIntroImg.filepath;
 
-            FS.readFile(sIntroImgPath, (err, data) => {
+    //         FS.readFile(sIntroImgPath, (err, data) => {
 
-                if (err) {
-                    resolve('X');
-                    return;
-                }
+    //             if (err) {
+    //                 resolve('X');
+    //                 return;
+    //             }
 
-                var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
-                    sLogoImgPath = sBuildAppPath + "\\www\\img\\intro.png";
+    //             var sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+    //                 sLogoImgPath = sBuildAppPath + "\\www\\img\\intro.png";
 
-                FS.unlink(sLogoImgPath, function (err) {
-                    if (err) {
-                        resolve('X');
-                        return;
-                    }
+    //             FS.unlink(sLogoImgPath, function(err) {
+    //                 if (err) {
+    //                     resolve('X');
+    //                     return;
+    //                 }
 
-                    FS.writeFile(sLogoImgPath, data, function (err) {
+    //                 FS.writeFile(sLogoImgPath, data, function(err) {
 
-                        if (err) {
-                            resolve('X');
-                            return;
-                        }
+    //                     if (err) {
+    //                         resolve('X');
+    //                         return;
+    //                     }
 
-                        oAPP.writeMsg("------- Intro Image Write Success!" + sAppId + "-----------");
+    //                     oAPP.writeMsg("------- Intro Image Write Success!" + sAppId + "-----------");
 
-                        oAPP.BUSY_STATUS_TXT = `[${sAppId}] Intro Image Write 성공`;
+    //                     oAPP.BUSY_STATUS_TXT = `[${sAppId}] Intro Image Write 성공`;
 
-                        resolve('X');
+    //                     resolve('X');
 
-                    }); // end of writeFile
+    //                 }); // end of writeFile
 
-                });
+    //             });
 
-            }); // end of FS.readFile
+    //         }); // end of FS.readFile
 
-        });
+    //     });
 
-    }; // end of oAPP.onIntroImageChange
+    // }; // end of oAPP.onIntroImageChange
 
-    // android platform 추가하기
-    oAPP.addPlatformAndroid = function (req, res, oFormData, sRandomKey) {
+    // // android platform 추가하기
+    // oAPP.addPlatformAndroid = function(req, res, oFormData, sRandomKey) {
 
-        const NODECMD = require("node-cmd");
+    //     const NODECMD = require("node-cmd");
 
-        var oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID,
-            sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+    //     var oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID,
+    //         sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        // cordova android 생성
-        var sCmd = "cd c:\\";
-        sCmd += " && cd " + sFolderPath;
-        sCmd += ` && cordova platform add android@${process.env.ANDROID_LATEST_VER}`;
+    //     // cordova android 생성
+    //     var sCmd = "cd c:\\";
+    //     sCmd += " && cd " + sFolderPath;
+    //     sCmd += ` && cordova platform add android@${process.env.ANDROID_LATEST_VER}`;
 
-        oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Start!!!");
+    //     oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Start!!!");
 
-        oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 시작!`;
+    //     oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 시작!`;
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+    //     NODECMD.run(sCmd, function(err, data, stderr) {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            oAPP.writeMsg(data);
+    //         oAPP.writeMsg(data);
 
-            oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Finish!!!");
+    //         oAPP.writeMsg("cordova platform [---" + sAppId + "---] add Finish!!!");
 
-            oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 완료!`;
+    //         oAPP.BUSY_STATUS_TXT = `[${sAppId}] cordova platform android 설치 완료!`;
 
-            oAPP.onCopyBuildExtraFile(req, res, oFormData, sRandomKey).then(() => {
+    //         oAPP.onCopyBuildExtraFile(req, res, oFormData, sRandomKey).then(() => {
 
-                // plugin 설치            
-                oAPP.onInstallPlugins(req, res, oFormData, sRandomKey);
+    //             // plugin 설치            
+    //             oAPP.onInstallPlugins(req, res, oFormData, sRandomKey);
 
-            });
+    //         });
 
-        });
+    //     });
 
-    }; // end of oAPP.addPlatformAndroid
+    // }; // end of oAPP.addPlatformAndroid
 
-    // APK 난독화 옵션이 있는 build-extra.gradle 파일을 복사해서 해당 옵션을 적용시키게 만든다.
-    oAPP.onCopyBuildExtraFile = function (req, res, oFormData, sRandomKey) {
+    // // APK 난독화 옵션이 있는 build-extra.gradle 파일을 복사해서 해당 옵션을 적용시키게 만든다.
+    // oAPP.onCopyBuildExtraFile = function(req, res, oFormData, sRandomKey) {
 
-        return new Promise(function (resolve, reject) {
+    //     return new Promise(function(resolve, reject) {
 
-            var oFields = oFormData.FIELDS,
-                sAppId = oFields.APPID,
-                sBuildExtraFileName = "build-extras.gradle",
-                sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId + "\\platforms\\android\\app",
-                sCopyTargetPath = PATH.join(sFolderPath, sBuildExtraFileName),
-                isDbg = oFields.ISDBG;
+    //         var oFields = oFormData.FIELDS,
+    //             sAppId = oFields.APPID,
+    //             sBuildExtraFileName = "build-extras.gradle",
+    //             sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId + "\\platforms\\android\\app",
+    //             sCopyTargetPath = PATH.join(sFolderPath, sBuildExtraFileName),
+    //             isDbg = oFields.ISDBG;
 
-            var sOrgBuildExtraFileFolderPath = APP.getAppPath() + "\\extra",
-                sOrgBuildExtraFilePath = PATH.join(sOrgBuildExtraFileFolderPath, sBuildExtraFileName);
+    //         var sOrgBuildExtraFileFolderPath = APP.getAppPath() + "\\extra",
+    //             sOrgBuildExtraFilePath = PATH.join(sOrgBuildExtraFileFolderPath, sBuildExtraFileName);
 
-            // debug 모드일 경우 build-extra.gradle 파일 복사를 하지 않는다.
-            if (isDbg == "X") {
-                resolve();
-                return;
-            }
+    //         // debug 모드일 경우 build-extra.gradle 파일 복사를 하지 않는다.
+    //         if (isDbg == "X") {
+    //             resolve();
+    //             return;
+    //         }
 
-            FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function () {
+    //         FS.copy(sOrgBuildExtraFilePath, sCopyTargetPath).then(function() {
 
-                oAPP.writeMsg('Build-extra.gradle 파일 복사 성공!!!! -->' + sAppId);
+    //             oAPP.writeMsg('Build-extra.gradle 파일 복사 성공!!!! -->' + sAppId);
 
-                oAPP.BUSY_STATUS_TXT = `[${sAppId}] Build-extra.gradle (난독화 적용 파일) 복사 성공!`;
+    //             oAPP.BUSY_STATUS_TXT = `[${sAppId}] Build-extra.gradle (난독화 적용 파일) 복사 성공!`;
 
-                resolve();
+    //             resolve();
 
-            }).catch(function (err) {
+    //         }).catch(function(err) {
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-            }); // end of FS.copy
+    //         }); // end of FS.copy
 
-        });
+    //     });
 
-    }; // end of oAPP.onCopyBuildExtraFile
+    // }; // end of oAPP.onCopyBuildExtraFile
 
-    // 플러그인 설치
-    oAPP.onInstallPlugins = function (req, res, oFormData, sRandomKey) {
+    // // 플러그인 설치
+    // oAPP.onInstallPlugins = function(req, res, oFormData, sRandomKey) {
 
-        const NODECMD = require("node-cmd");
+    //     const NODECMD = require("node-cmd");
 
-        var sPluginPath = PATHINFO.U4A_PLUG_JSON,
-            oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID,
-            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+    //     var sPluginPath = PATHINFO.U4A_PLUG_JSON,
+    //         oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID,
+    //         sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        let aPluginList = oFormData.T_PATH,
-            iPathLength = aPluginList.length;
+    //     let aPluginList = oFormData.T_PATH,
+    //         iPathLength = aPluginList.length;
 
-        // cordova android 생성
-        var sCmd = "cd c:\\";
-        sCmd += " && cd " + sBuildAppPath;
+    //     // cordova android 생성
+    //     var sCmd = "cd c:\\";
+    //     sCmd += " && cd " + sBuildAppPath;
 
-        for (var i = 0; i < iPathLength; i++) {
+    //     for (var i = 0; i < iPathLength; i++) {
 
-            const sPluginPath = aPluginList[i];
+    //         const sPluginPath = aPluginList[i];
 
-            sCmd += " && cordova plugin add " + sPluginPath;
+    //         sCmd += " && cordova plugin add " + sPluginPath;
 
-        }
+    //     }
 
-        oAPP.writeMsg("plugin Install Start. : ---->" + sAppId);
+    //     oAPP.writeMsg("plugin Install Start. : ---->" + sAppId);
 
-        oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 시작!`;
+    //     oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 시작!`;
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+    //     NODECMD.run(sCmd, function(err, data, stderr) {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            oAPP.writeMsg(data);
+    //         oAPP.writeMsg(data);
 
-            oAPP.writeMsg("plugin Install Finish. : ---->" + sAppId);
+    //         oAPP.writeMsg("plugin Install Finish. : ---->" + sAppId);
 
-            oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 종료!`;
+    //         oAPP.BUSY_STATUS_TXT = `[${sAppId}] plugin Install 종료!`;
 
-            // app build
-            oAPP.onBuildApp(req, res, oFormData, sRandomKey);
+    //         // app build
+    //         oAPP.onBuildApp(req, res, oFormData, sRandomKey);
 
-            return;
+    //         return;
 
-        }); // end of NODECMD.run
+    //     }); // end of NODECMD.run
 
-    }; // end of oAPP.onInstallPlugins
+    // }; // end of oAPP.onInstallPlugins
 
-    // apk build
-    oAPP.onBuildApp = function (req, res, oFormData, sRandomKey) {
+    // // apk build
+    // oAPP.onBuildApp = function(req, res, oFormData, sRandomKey) {
 
-        const NODECMD = require("node-cmd");
+    //     const NODECMD = require("node-cmd");
 
-        // cordova android 생성
-        var oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID,
-            isDbg = oFields.ISDBG,
-            sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
+    //     // cordova android 생성
+    //     var oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID,
+    //         isDbg = oFields.ISDBG,
+    //         sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
 
-        var sCmd = "";
+    //     var sCmd = "";
 
-        if (isDbg == 'X') {
-            sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android`;
-        } else {
-            sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android --release`;
-        }
+    //     if (isDbg == 'X') {
+    //         sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android`;
+    //     } else {
+    //         sCmd = `cd c:\\ && cd ${sBuildAppPath} && cordova build android --release`;
+    //     }
 
-        oAPP.writeMsg("android app build start. ---->" + sAppId);
+    //     oAPP.writeMsg("android app build start. ---->" + sAppId);
 
-        oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 시작!`;
+    //     oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 시작!`;
 
-        NODECMD.run(sCmd, function (err, data, stderr) {
+    //     NODECMD.run(sCmd, function(err, data, stderr) {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                return;
-            }
+    //             return;
+    //         }
 
-            oAPP.writeMsg(data);
+    //         oAPP.writeMsg(data);
 
-            oAPP.writeMsg("android app build finish. ---->" + sAppId);
+    //         oAPP.writeMsg("android app build finish. ---->" + sAppId);
 
-            oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 종료!`;
+    //         oAPP.BUSY_STATUS_TXT = `[${sAppId}] android app 빌드 종료!`;
 
-            // apk 파일 response
-            oAPP.onRespBuildApp(req, res, oFormData, sRandomKey);
+    //         // apk 파일 response
+    //         oAPP.onRespBuildApp(req, res, oFormData, sRandomKey);
 
-        }); // end of NODECMD.run
+    //     }); // end of NODECMD.run
 
-    }; // end of oAPP.onBuildApp
+    // }; // end of oAPP.onBuildApp
 
-    // Build한 Apk를 Return 한다.
-    oAPP.onRespBuildApp = function (req, res, oFormData, sRandomKey) {
+    // // Build한 Apk를 Return 한다.
+    oAPP.onRespBuildApp = function(req, res, oFormData, sRandomKey) {
 
         const FS = require('fs-extra');
 
@@ -2337,83 +2336,79 @@
 
             oAPP.writeMsg("--------------- apk file return!!!-- (" + sAppId + ") ----------------");
 
-            oAPP.BUSY_STATUS_TXT = "FINISH";
+            // oAPP.BUSY_STATUS_TXT = "FINISH";
 
-            // });
+            // // });
 
-            // 로컬에 복사한 플러그인 파일을 삭제한다.
-            oAPP.onRemovePlugins(oFormData, sRandomKey);
+            // // 로컬에 복사한 플러그인 파일을 삭제한다.
+            // oAPP.onRemovePlugins(oFormData, sRandomKey);
 
         }); // end of FS.readFile
 
     }; // end of oAPP.onRespBuildApp
 
-    // 로컬에 복사한 플러그인을 삭제한다.
-    oAPP.onRemovePlugins = async (oFormData, sRandomKey) => {
+    // // 로컬에 복사한 플러그인을 삭제한다.
+    // oAPP.onRemovePlugins = async (oFormData, sRandomKey) => {
 
-        var oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID;
+    //     var oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID;
 
-        oAPP.writeMsg("플러그인 삭제 시작 --- (" + sAppId + ") " + sRandomKey);
+    //     oAPP.writeMsg("플러그인 삭제 시작 --- (" + sAppId + ") " + sRandomKey);
 
-        if (!FS.existsSync(oFormData.TMPDIR)) {
-            oAPP.writeMsg("플러그인 삭제 할게 없음!!");
-            return;
-        }
+    //     if (!FS.existsSync(oFormData.TMPDIR)) {
+    //         oAPP.writeMsg("플러그인 삭제 할게 없음!!");
+    //         return;
+    //     }
 
-        try {
+    //     try {
 
-            await FS.remove(oFormData.TMPDIR);
+    //         await FS.remove(oFormData.TMPDIR);
 
-            console.log('success!');
+    //         console.log('success!');
 
-            oAPP.writeMsg("플러그인 삭제 종료!! --- (" + sAppId + ") " + sRandomKey);
+    //         oAPP.writeMsg("플러그인 삭제 종료!! --- (" + sAppId + ") " + sRandomKey);
 
-        } catch (err) {
-            oAPP.writeMsg("플러그인 삭제 오류!! ");
-        }
+    //     } catch (err) {
+    //         oAPP.writeMsg("플러그인 삭제 오류!! ");
+    //     }
 
-    }; // end of oAPP.onRemovePlugins
+    // }; // end of oAPP.onRemovePlugins
 
-    // 빌드한 폴더 삭제
-    oAPP.removeBuildFolder = function (req, res, oFormData, sRandomKey, fnSuccess) {
+    // // 빌드한 폴더 삭제
+    // oAPP.removeBuildFolder = function(req, res, oFormData, sRandomKey, fnSuccess) {
 
-        const FS = require('fs-extra');
+    //     const FS = require('fs-extra');
 
-        var oFields = oFormData.FIELDS,
-            sAppId = oFields.APPID;
+    //     var oFields = oFormData.FIELDS,
+    //         sAppId = oFields.APPID;
 
-        var sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
+    //     var sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
 
-        oAPP.writeMsg("빌드폴더 삭제시작--- (" + sAppId + ") " + sRandomKey);
+    //     oAPP.writeMsg("빌드폴더 삭제시작--- (" + sAppId + ") " + sRandomKey);
 
-        // 폴더 삭제        
-        FS.remove(sFolderPath, (err) => {
+    //     // 폴더 삭제        
+    //     FS.remove(sFolderPath, (err) => {
 
-            if (err) {
-                console.error(err);
+    //         if (err) {
+    //             console.error(err);
 
-                // response error
-                _res_error(res, JSON.stringify({
-                    "RETCD": "E",
-                    "RTMSG": err.toString()
-                }));
+    //             // response error
+    //             _res_error(res, JSON.stringify({
+    //                 "RETCD": "E",
+    //                 "RTMSG": err.toString()
+    //             }));
 
-                // res.end(JSON.stringify({
-                //     "RETCD": "E",
-                //     "RTMSG": err.toString()
-                // }));
-                return;
-            }
+    //             return;
+    //         }
 
-            oAPP.writeMsg("빌드폴더 삭제 종료----> (" + sAppId + ")" + sRandomKey);
+    //         oAPP.writeMsg("빌드폴더 삭제 종료----> (" + sAppId + ")" + sRandomKey);
 
-            fnSuccess();
-            return;
+    //         fnSuccess();
+    //         return;
 
-        }); // end of FS.remove
+    //     }); // end of FS.remove
 
-    }; // end of oAPP.removeBuildFolder
+    // }; // end of oAPP.removeBuildFolder
 
     // 앱 빌드 과정을 화면에 뿌린다.
     oAPP.writeMsg = (sMsg) => {
@@ -2508,11 +2503,6 @@
     function _res_error(res, oReturn) {
 
         res.end(oReturn);
-
-        // SSE 에서 돌고 있는 인터벌을 중지한다.
-        _SSEclearInterval();
-
-        oAPP.BUSY_STATUS_TXT = "";
 
     } // end of _res_error
 

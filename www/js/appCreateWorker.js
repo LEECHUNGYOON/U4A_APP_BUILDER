@@ -47,8 +47,16 @@ self.onmessage = (oEvent) => {
 
     WS.onclose = (e) => {
 
+        let sCloseMsg = e.reason;
+
+        if(sCloseMsg == ""){
+            sCloseMsg = "[createStatus] websocket connect close!";
+        }
+
+        // let sCloseMsg = e.reason || "";
+
         oReturnMsg.RETCD = "E";
-        oReturnMsg.RTMSG = e.toString();
+        oReturnMsg.RTMSG = sCloseMsg;
 
         self.postMessage(oReturnMsg);
 
