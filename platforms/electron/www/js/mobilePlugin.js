@@ -43,7 +43,6 @@ function fn_generateRandomString(num) {
 
 }
 
-
 async function getDIR(FS, PATH, TMPSavePath) {
     return new Promise((resolve, reject) => {
 
@@ -51,41 +50,76 @@ async function getDIR(FS, PATH, TMPSavePath) {
 
         FS.readdir(TMPSavePath, (err, files) => {
 
+            if (err) {
+                resolve({ RETCD: "E", RTMSG: err.toString() });
+                return;
+            }
+
             files.forEach(file => {
                 var sPath = PATH.join(TMPSavePath, file);
                 T_PATH.push(sPath);
             });
 
-            resolve(T_PATH);
+            resolve({ RETCD: "S", T_PATH: T_PATH, PLUGINS: files });
 
         });
 
     });
 }
 
+async function getPluginFolderList(SSH) {
 
+    return new Promise((resolve) => {
 
+        SSH.execCommand('cd u4arnd/05.U4A_CORDOVA/plugins && ls -d */', {}).then(function (result) {
+
+            if (result.code !== 0 || result.stderr !== "") {
+                resolve({ "RETCD": "E", "RTMSG": "plugin 파일정보가 누락되었습니다." });
+                return;
+            }
+
+            let aFolderList = result.stdout.split("\n"),
+                iListLength = aFolderList.length;
+
+            let aList = [];
+            for (var i = 0; i < iListLength; i++) {
+
+                const sName = aFolderList[i];
+
+                let sFolderName = sName.replaceAll("/", "");
+                aList.push(sFolderName);
+
+            }
+
+            resolve({ "RETCD": "S", "RTDATA": aList });
+
+        });
+
+    });
+
+}
+
+const
+    PLUGIN_CONN_INFO = {
+        host: 'u4arnd.iptime.org',
+        username: 'u4arnd',
+        port: 9541,
+        password: '#u4aRnd$',
+        tryKeyboard: true,
+    },
+    PLUGIN_ROOT_PATH = "/mnt/Data/U4ARND/u4arnd/05.U4A_CORDOVA/plugins";
 
 /* ================================================================= */
 /* Export Module Function 
 /* ================================================================= */
-exports.getPlugin = async function (PATH, FS, ROOTPATH, sRandomKey) {
+exports.getPlugin = async function (PATH, FS, ROOTPATH, sRandomKey, VERSION, ISDEV) {
     return new Promise(async (resolve, reject) => {
 
         let NodeSSH = require('node-ssh').NodeSSH;
 
         const ssh = new NodeSSH();
-        const Lpassword = '#u4aRnd$';
 
-        let SSH = await ssh.connect({
-            host: 'u4arnd.iptime.org',
-            username: 'u4arnd',
-            port: 9541,
-            password: Lpassword,
-            tryKeyboard: true,
-
-        });
-
+        let SSH = await ssh.connect(PLUGIN_CONN_INFO);
 
         //접근 실패
         if (!SSH.isConnected()) {
@@ -108,12 +142,9 @@ exports.getPlugin = async function (PATH, FS, ROOTPATH, sRandomKey) {
             FS.mkdirSync(TMPSavePath);
         }
 
-        //U:\contents\cordova\plugins
-        var NAS_PATH = "/mnt/Data/U4ARND/u4arnd/05.U4A_CORDOVA/plugins/android_10.1.2_dev";
-
-        // 실행된 컴퓨터가 서버 컴퓨터 일 경우
-        if (process.env.COMPUTERNAME == process.env.SERVER_COMPUTERNAME) {
-            NAS_PATH = "/mnt/Data/U4ARND/u4arnd/05.U4A_CORDOVA/plugins/android_10.1.2";
+        var NAS_PATH = `${PLUGIN_ROOT_PATH}/${VERSION}`; //PLUGIN_ROOT_PATH + "/"
+        if (ISDEV == "X") {
+            NAS_PATH += "_dev";
         }
 
         try {
@@ -127,16 +158,53 @@ exports.getPlugin = async function (PATH, FS, ROOTPATH, sRandomKey) {
 
         SSH.dispose();
 
-
         //Plugin 정보 추출
-        var T_PATH = await getDIR(FS, PATH, TMPSavePath);
+        var oResult = await getDIR(FS, PATH, TMPSavePath);
+        if (oResult.RETCD == "E") {
+            resolve({ "RETCD": "E", "RTMSG": oResult.RTMSG });
+            return;
+        }
+
+        var T_PATH = oResult.T_PATH,
+            PLUGINS = oResult.PLUGINS;
 
         if (T_PATH.length == 0) {
             resolve({ "RETCD": "E", "RTMSG": "plugin 파일정보가 누락되었습니다." });
             return;
         }
 
-        resolve({ "RETCD": "S", "RTMSG": "", "TMPDIR": TMPSavePath, "T_PATH": T_PATH });
+        resolve({ "RETCD": "S", "RTMSG": "", "TMPDIR": TMPSavePath, "T_PATH": T_PATH, "PLUGINS": PLUGINS });
+
+    });
+
+};
+
+
+exports.getPluginFolderPath = () => {
+
+    return new Promise(async (resolve) => {
+
+        let NodeSSH = require('node-ssh').NodeSSH;
+
+        const ssh = new NodeSSH();
+
+        let SSH = await ssh.connect(PLUGIN_CONN_INFO);
+
+        //접근 실패
+        if (!SSH.isConnected()) {
+            SSH.dispose();
+            SSH = null;
+            resolve({ "RETCD": "E", "RTMSG": "NAS 연결실패" });
+            return;
+
+        }
+
+        // 플러그인 폴더명 구하기
+        let oResult = await getPluginFolderList(SSH);
+
+        SSH.dispose();
+        SSH = null;
+        resolve(oResult);
 
     });
 
