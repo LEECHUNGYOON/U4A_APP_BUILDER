@@ -3,10 +3,7 @@ self.onmessage = (oEvent) => {
     const
         PATH = require('path'),
         FS = require('fs'),
-        IP_ADDR = require("ip"),
-        ZIP = require("zip-lib"),
-        NODECMD = require("node-cmd"),
-        NodeSSH = require('node-ssh').NodeSSH;
+        NODECMD = require("node-cmd");
 
     // 리턴 메시지 구조
     let oReturnMsg = {
@@ -25,7 +22,24 @@ self.onmessage = (oEvent) => {
         oFields = oFormData.FIELDS,
         sAppId = oFields.APPID,
         sAppDesc = oFields.APPDESC,
+        bIsDev = oFields.ISDEV,
+        VERSION = process.env.ANDROID_LATEST_VER,
         sFolderPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey;
+
+
+    function fnWait(iMilisecond) {
+
+        return new Promise((resolve) => {
+
+            setTimeout(() => {
+
+                resolve();
+
+            }, iMilisecond);
+
+        });
+
+    }
 
     let oAPP = {};
 
@@ -33,8 +47,16 @@ self.onmessage = (oEvent) => {
 
     WS.onclose = (e) => {
 
+        let sCloseMsg = e.reason;
+
+        if(sCloseMsg == ""){
+            sCloseMsg = "[createStatus] websocket connect close!";
+        }
+
+        // let sCloseMsg = e.reason || "";
+
         oReturnMsg.RETCD = "E";
-        oReturnMsg.RTMSG = e.toString();
+        oReturnMsg.RTMSG = sCloseMsg;
 
         self.postMessage(oReturnMsg);
 
@@ -639,25 +661,12 @@ self.onmessage = (oEvent) => {
         }; // end of oAPP.onCopyBuildExtraFile
 
         // 플러그인 설치
-        oAPP.onInstallPlugins = function (oFormData, sRandomKey) {
+        oAPP.onInstallPlugins = async function (oFormData, sRandomKey) {
 
-            var sPluginPath = PATHINFO.U4A_PLUG_JSON,
-                sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId;
-
-            let aPluginList = oFormData.T_PATH,
+            let sBuildAppPath = PATHINFO.U4A_BUILD_PATH + "\\" + sRandomKey + "\\" + sAppId,
+                aPluginList = oFormData.T_PATH,
+                aPlugins = oFormData.PLUGINS,
                 iPathLength = aPluginList.length;
-
-            // cordova android 생성
-            var sCmd = "cd c:\\";
-            sCmd += " && cd " + sBuildAppPath;
-
-            for (var i = 0; i < iPathLength; i++) {
-
-                const sPluginPath = aPluginList[i];
-
-                sCmd += " && cordova plugin add " + sPluginPath;
-
-            }
 
             oReturnMsg.RETCD = "M";
             oReturnMsg.RTMSG = `[${sAppId}] plugin Install 시작!`;
@@ -666,12 +675,31 @@ self.onmessage = (oEvent) => {
 
             oAPP.onWebSocketSend(oReturnMsg.RTMSG);
 
-            NODECMD.run(sCmd, function (err, data, stderr) {
+            await fnWait(3000);
 
-                if (err) {
+            // cordova android 생성
+            var sCmd = "cd c:\\";
+            sCmd += " && cd " + sBuildAppPath;
+
+            for (var i = 0; i < iPathLength; i++) {
+
+                const
+                    sPluginPath = aPluginList[i],
+                    sPluginName = aPlugins[i],
+                    CMD = sCmd + " && cordova plugin add " + sPluginPath;
+
+                oReturnMsg.RETCD = "M";
+                oReturnMsg.RTMSG = `[${sAppId}] \n\n ${sPluginName} \n\n plugin 설치중..(${i + 1} / ${iPathLength})`;
+
+                self.postMessage(oReturnMsg);
+
+                oAPP.onWebSocketSend(oReturnMsg.RTMSG);
+
+                let oResult = await oAPP.onNodeCmd(CMD);
+                if (oResult.RETCD == "E") {
 
                     oReturnMsg.RETCD = "E";
-                    oReturnMsg.RTMSG = err.toString();
+                    oReturnMsg.RTMSG = oResult.RTMSG;
 
                     self.postMessage(oReturnMsg);
 
@@ -679,22 +707,52 @@ self.onmessage = (oEvent) => {
                     oAPP.WS.close();
 
                     return;
+
                 }
 
-                oReturnMsg.RETCD = "M";
-                oReturnMsg.RTMSG = `[${sAppId}] plugin Install 종료!`;
+            }
 
-                self.postMessage(oReturnMsg);
+            oReturnMsg.RETCD = "M";
+            oReturnMsg.RTMSG = `[${sAppId}] plugin 설치 완료!!`;
 
-                // 웹소켓 메시지 전송
-                oAPP.onWebSocketSend(oReturnMsg.RTMSG);
+            self.postMessage(oReturnMsg);
 
-                // app build
-                oAPP.onBuildApp(oFormData, sRandomKey);
+            oAPP.onWebSocketSend(oReturnMsg.RTMSG);
 
-                return;
+            await fnWait(3000);
 
-            }); // end of NODECMD.run
+            // app build
+            oAPP.onBuildApp(oFormData, sRandomKey);
+
+            // NODECMD.run(sCmd, function (err, data, stderr) {
+
+            //     if (err) {
+
+            //         oReturnMsg.RETCD = "E";
+            //         oReturnMsg.RTMSG = err.toString();
+
+            //         self.postMessage(oReturnMsg);
+
+            //         // 웹소켓 종료
+            //         oAPP.WS.close();
+
+            //         return;
+            //     }
+
+            //     oReturnMsg.RETCD = "M";
+            //     oReturnMsg.RTMSG = `[${sAppId}] plugin Install 종료!`;
+
+            //     self.postMessage(oReturnMsg);
+
+            //     // 웹소켓 메시지 전송
+            //     oAPP.onWebSocketSend(oReturnMsg.RTMSG);
+
+            //     // app build
+            //     oAPP.onBuildApp(oFormData, sRandomKey);
+
+            //     return;
+
+            // }); // end of NODECMD.run
 
         }; // end of oAPP.onInstallPlugins
 
@@ -825,6 +883,8 @@ self.onmessage = (oEvent) => {
 
         oAPP.onStart = async () => {
 
+            debugger;
+
             oReturnMsg.RETCD = "M";
             oReturnMsg.RTMSG = `[${sAppId}] APP 설치 폴더 생성중..`;
 
@@ -850,7 +910,7 @@ self.onmessage = (oEvent) => {
             oAPP.onWebSocketSend(oReturnMsg.RTMSG);
 
             // 플러그인을 서버에서 로컬로 복사한다.
-            var oReturnData = await MPLUGININFO.getPlugin(PATH, FS, PATHINFO.PLUGIN_PATH, sRandomKey);
+            var oReturnData = await MPLUGININFO.getPlugin(PATH, FS, PATHINFO.PLUGIN_PATH, sRandomKey, VERSION, bIsDev);
             if (oReturnData.RETCD == "E") {
 
                 oReturnMsg.RETCD = "E";
@@ -867,6 +927,7 @@ self.onmessage = (oEvent) => {
 
             oFormData.TMPDIR = oReturnData.TMPDIR;
             oFormData.T_PATH = oReturnData.T_PATH;
+            oFormData.PLUGINS = oReturnData.PLUGINS;
 
             // cordova android 생성
             var sCmd = "cd c:\\";
