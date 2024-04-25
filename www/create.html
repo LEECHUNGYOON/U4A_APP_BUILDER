@@ -311,7 +311,41 @@
                                                     design: sap.m.LabelDesign.Bold,
                                                     text: "Port"
                                                 }),
-                                                fields: new sap.m.MaskInput({
+                                                fields: new sap.m.Input({
+                                                    type: "Number",
+                                                    value: "{/PORT}",
+                                                    maxLength: 5,
+                                                    liveChange: function(oEvent){
+
+                                                        let oInput = oEvent.getSource();
+
+                                                        let sValue = oEvent.getParameter("value");
+                                                        let iMaxLength = oInput.getMaxLength();
+
+                                                        /*
+
+                                                        if(sValue.includes("e")){
+
+                                                            sValue = sValue.replaceAll("e", "");
+
+                                                            oInput.setValue(sValue);
+
+                                                            return;
+                                                            
+                                                        }
+                                                        */
+
+                                                        if(sValue.length > iMaxLength){                                                            
+                                                            oInput.setValue(sValue.substring(0, iMaxLength));
+                                                            return;
+                                                        }
+
+                                                    }
+                                                })
+
+                                                
+                                                /*
+                                                new sap.m.MaskInput({
                                                     value: "{/PORT}",
                                                     mask: "AAAAA",
                                                     placeholderSymbol: "_",
@@ -322,6 +356,8 @@
                                                         })
                                                     ]
                                                 })
+                                                */
+                                                
                                             }),
 
                                             new sap.ui.layout.form.FormElement({
@@ -464,12 +500,18 @@
                 oForm.append("APPDESC", oModelData.APPDESC);
                 oForm.append("PROTO", oModelData.PROTO);
                 oForm.append("HOST", oModelData.HOST);
-                oForm.append("PORT", oModelData.PORT);
+
+                let PORT = oModelData.PORT;
+                    PORT = PORT.replace(/[^0-9]/g, "");
+
+                oForm.append("PORT", PORT);
                 oForm.append("PATH", oModelData.PATH);
                 oForm.append("PARAM", oModelData.PARAM);
                 oForm.append("SHORTCUT", oModelData.SHORTCUT || "");
                 oForm.append("INTRO", oModelData.INTRO || "");
                 oForm.append("KEY", sRandomKey);
+
+                return;
 
                 oAPP.CREATE_KEY = sRandomKey;
                 oAPP.CREATE_APP = oModelData.APPID;
