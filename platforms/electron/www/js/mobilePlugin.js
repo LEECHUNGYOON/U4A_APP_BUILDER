@@ -103,7 +103,7 @@ const
     PLUGIN_CONN_INFO = {
         host: 'u4arnd.iptime.org',
         username: 'u4arnd',
-        port: 9541,
+        port: 19751, //9541,
         password: '#u4aRnd$',
         tryKeyboard: true,
     },
